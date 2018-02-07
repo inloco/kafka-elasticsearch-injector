@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"os"
 
+	"strings"
+
 	"bitbucket.org/ubeedev/kakfa-elasticsearch-injector-go/src/injector"
 	"bitbucket.org/ubeedev/kakfa-elasticsearch-injector-go/src/kafka"
 	"bitbucket.org/ubeedev/kakfa-elasticsearch-injector-go/src/logger_builder"
@@ -37,7 +39,7 @@ func main() {
 
 	kafkaConfig := &kafka.Config{
 		Type:          kafka.KafkaConsumer,
-		Topic:         os.Getenv("KAFKA_VISITS_TOPIC"),
+		Topics:        strings.Split(os.Getenv("KAFKA_VISITS_TOPIC"), ","),
 		ConsumerGroup: os.Getenv("KAFKA_VISITS_CONSUMER_GROUP"),
 		Concurrency:   os.Getenv("KAFKA_VISITS_CONSUMER_CONCURRENCY"),
 		BatchSize:     os.Getenv("KAFKA_VISITS_CONSUMER_BATCH_SIZE"),

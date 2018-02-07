@@ -26,7 +26,7 @@ func MakeKafkaConsumer(endpoints *Endpoints, logger log.Logger, schemaRegistry *
 	}
 
 	return kafka.Consumer{
-		Topic:       kafkaConfig.Topic,
+		Topics:      kafkaConfig.Topics,
 		Group:       kafkaConfig.ConsumerGroup,
 		Endpoint:    endpoints.Insert,
 		Decoder:     deserializer.KafkaMessageToRecord,

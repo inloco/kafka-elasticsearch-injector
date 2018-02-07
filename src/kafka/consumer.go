@@ -25,7 +25,7 @@ type kafka struct {
 }
 
 type Consumer struct {
-	Topic       string
+	Topics      []string
 	Group       string
 	Endpoint    endpoint.Endpoint
 	Decoder     DecodeMessageFunc
@@ -34,7 +34,8 @@ type Consumer struct {
 	BatchSize   int
 }
 
-type partitionOffset struct {
+type topicPartitionOffset struct {
+	topic     string
 	partition int32
 	offset    int64
 }
@@ -59,7 +60,7 @@ func (k *kafka) RegisterConsumer(consumer Consumer) {
 }
 
 func (k *kafka) Start() {
-	topics := []string{k.consumer.Topic}
+	topics := k.consumer.Topics
 	concurrency := k.consumer.Concurrency
 	consumer, err := cluster.NewConsumer(k.brokers, k.consumer.Group, topics, k.config)
 	if err != nil {
@@ -75,7 +76,7 @@ func (k *kafka) Start() {
 	// Fan-out channel
 	consumerCh := make(chan *sarama.ConsumerMessage, buffSize*concurrency*10)
 	// Update offset channel
-	offsetCh := make(chan *partitionOffset)
+	offsetCh := make(chan *topicPartitionOffset)
 	for i := 0; i < concurrency; i++ {
 		go func() {
 			buf := make([]*sarama.ConsumerMessage, buffSize)
@@ -104,7 +105,7 @@ func (k *kafka) Start() {
 						continue
 					}
 					for _, msg := range buf {
-						offsetCh <- &partitionOffset{msg.Partition, msg.Offset}
+						offsetCh <- &topicPartitionOffset{msg.Topic, msg.Partition, msg.Offset}
 						consumer.MarkOffset(msg, "") // mark message as processed
 					}
 					decoded = nil
@@ -114,14 +115,14 @@ func (k *kafka) Start() {
 		}()
 	}
 	lock := sync.RWMutex{}
-	partitionToOffset := make(map[int32]int64)
+	partitionToOffset := make(map[string]map[int32]int64)
 	go func() {
 		for {
-			partitionOffset := <-offsetCh
+			offset := <-offsetCh
 			lock.Lock()
-			currentOffset, exists := partitionToOffset[partitionOffset.partition]
-			if !exists || partitionOffset.offset > currentOffset {
-				partitionToOffset[partitionOffset.partition] = partitionOffset.offset
+			currentOffset, exists := partitionToOffset[offset.topic][offset.partition]
+			if !exists || offset.offset > currentOffset {
+				partitionToOffset[offset.topic][offset.partition] = offset.offset
 			}
 			lock.Unlock()
 		}
@@ -129,16 +130,17 @@ func (k *kafka) Start() {
 
 	go func() {
 		for range time.Tick(30 * time.Second) { //TODO parameter
-			partitions := consumer.HighWaterMarks()[k.consumer.Topic]
-			for partition, maxOffset := range partitions {
-				lock.RLock()
-				offset, ok := partitionToOffset[partition]
-				lock.RUnlock()
-				if ok {
-					delay := maxOffset - offset
-					level.Info(k.consumer.Logger).Log("message", "updating partition offset metric",
-						"partition", partition, "maxOffset", maxOffset, "current", offset, "delay", delay)
-					updateOffset(k.consumer.Topic, partition, delay)
+			for topic, partitions := range consumer.HighWaterMarks() {
+				for partition, maxOffset := range partitions {
+					lock.RLock()
+					offset, ok := partitionToOffset[topic][partition]
+					lock.RUnlock()
+					if ok {
+						delay := maxOffset - offset
+						level.Info(k.consumer.Logger).Log("message", "updating partition offset metric",
+							"partition", partition, "maxOffset", maxOffset, "current", offset, "delay", delay)
+						updateOffset(topic, partition, delay)
+					}
 				}
 			}
 		}

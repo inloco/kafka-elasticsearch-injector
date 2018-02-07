@@ -6,7 +6,7 @@ const (
 
 type Config struct {
 	Type          string
-	Topic         string
+	Topics        []string
 	ConsumerGroup string
 	Concurrency   string
 	BatchSize     string

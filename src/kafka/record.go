@@ -3,21 +3,17 @@ package kafka
 import (
 	"context"
 
-	"encoding/json"
-
 	"time"
 
-	"bitbucket.org/ubeedev/kakfa-elasticsearch-injector-go/src/schema_registry"
+	"bitbucket.org/ubeedev/kafka-elasticsearch-injector-go/src/schema_registry"
 	"github.com/Shopify/sarama"
 	"github.com/linkedin/goavro"
 )
 
 type Record struct {
-	SchemaId  int32
 	Topic     string
 	Timestamp time.Time
-	Json      []byte
-	Avro      []byte
+	Json      interface{}
 }
 
 func (r *Record) FormatTimestamp() string {
@@ -43,17 +39,11 @@ func (d *Decoder) KafkaMessageToRecord(context context.Context, msg *sarama.Cons
 	if err != nil {
 		return nil, err
 	}
-	jsonBytes, err := json.Marshal(native)
-	if err != nil {
-		return nil, err
-	}
 
 	return &Record{
-		SchemaId:  schemaId,
 		Topic:     msg.Topic,
 		Timestamp: msg.Timestamp,
-		Json:      jsonBytes,
-		Avro:      avroRecord,
+		Json:      native,
 	}, nil
 }
 

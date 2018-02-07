@@ -8,7 +8,6 @@ import (
 type Config struct {
 	host        string
 	index       string
-	tp          string
 	bulkTimeout time.Duration
 }
 
@@ -24,7 +23,6 @@ func NewConfig() Config {
 	return Config{
 		host:        os.Getenv("ELASTICSEARCH_HOST"),
 		index:       os.Getenv("ES_INDEX"),
-		tp:          os.Getenv("ES_TYPE"),
 		bulkTimeout: timeout,
 	}
 }

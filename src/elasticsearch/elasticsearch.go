@@ -5,15 +5,10 @@ import (
 
 	"fmt"
 
-	"bitbucket.org/ubeedev/kakfa-elasticsearch-injector-go/src/kafka"
+	"bitbucket.org/ubeedev/kafka-elasticsearch-injector-go/src/kafka"
 	"github.com/go-kit/kit/log"
 	"github.com/go-kit/kit/log/level"
 	"github.com/olivere/elastic"
-)
-
-const (
-	parentAggregation = "parent_agg"
-	subAggregation    = "sub_agg"
 )
 
 var esClient *elastic.Client
@@ -29,12 +24,12 @@ type RecordDatabase interface {
 	ReadinessCheck() bool
 }
 
-type visitDatabase struct {
+type recordDatabase struct {
 	logger log.Logger
 	config Config
 }
 
-func (d visitDatabase) GetClient() *elastic.Client {
+func (d recordDatabase) GetClient() *elastic.Client {
 	if esClient == nil {
 		client, err := elastic.NewClient(elastic.SetURL(d.config.host))
 		if err != nil {
@@ -46,13 +41,13 @@ func (d visitDatabase) GetClient() *elastic.Client {
 	return esClient
 }
 
-func (d visitDatabase) CloseClient() {
+func (d recordDatabase) CloseClient() {
 	if esClient != nil {
 		esClient.Stop()
 	}
 }
 
-func (d visitDatabase) Insert(records []*kafka.Record) error {
+func (d recordDatabase) Insert(records []*kafka.Record) error {
 	bulkRequest := d.GetClient().Bulk()
 	for _, record := range records {
 		index := fmt.Sprintf("%s-%s", d.config.index, record.FormatTimestamp())
@@ -68,7 +63,7 @@ func (d visitDatabase) Insert(records []*kafka.Record) error {
 	return err
 }
 
-func (d visitDatabase) ReadinessCheck() bool {
+func (d recordDatabase) ReadinessCheck() bool {
 	info, _, err := d.GetClient().Ping(d.config.host).Do(context.Background())
 	if err != nil {
 		level.Error(d.logger).Log("err", err, "message", "error pinging elasticsearch")
@@ -78,6 +73,6 @@ func (d visitDatabase) ReadinessCheck() bool {
 	return true
 }
 
-func NewDatabase(logger log.Logger, config Config) visitDatabase {
-	return visitDatabase{logger: logger, config: config}
+func NewDatabase(logger log.Logger, config Config) recordDatabase {
+	return recordDatabase{logger: logger, config: config}
 }

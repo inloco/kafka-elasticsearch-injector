@@ -1,0 +1,9 @@
+bin/
+builder/id_rsa
+.idea/
+.DS_Store
+vendor/
+*.iml
+.idea/
+kubernetes/production/_credentials/
+replica-parameters.yml

@@ -72,12 +72,12 @@ func TestMain(m *testing.M) {
 	os.Exit(retCode)
 }
 
-func TestDatabase_ReadinessCheck(t *testing.T) {
+func TestRecordDatabase_ReadinessCheck(t *testing.T) {
 	ready := db.ReadinessCheck()
 	assert.Equal(t, true, ready)
 }
 
-func TestDatabase_Insert(t *testing.T) {
+func TestRecordDatabase_Insert(t *testing.T) {
 	now := time.Now()
 	record := fixtures.NewRecord(now)
 	index := fmt.Sprintf("%s-%s", config.index, record.FormatTimestamp())

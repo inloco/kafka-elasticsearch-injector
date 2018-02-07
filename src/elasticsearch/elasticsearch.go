@@ -73,6 +73,6 @@ func (d recordDatabase) ReadinessCheck() bool {
 	return true
 }
 
-func NewDatabase(logger log.Logger, config Config) recordDatabase {
+func NewDatabase(logger log.Logger, config Config) RecordDatabase {
 	return recordDatabase{logger: logger, config: config}
 }

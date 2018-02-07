@@ -8,7 +8,7 @@ import (
 	"sync"
 
 	"github.com/Shopify/sarama"
-	"bitbucket.org/ubeedev/kakfa-elasticsearch-injector-go/src/schema_registry"
+	"bitbucket.org/ubeedev/kafka-elasticsearch-injector-go/src/schema_registry"
 )
 
 const magic byte = 0

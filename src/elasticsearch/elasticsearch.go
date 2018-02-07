@@ -9,6 +9,7 @@ import (
 	"github.com/go-kit/kit/log"
 	"github.com/go-kit/kit/log/level"
 	"github.com/olivere/elastic"
+	"github.com/pkg/errors"
 )
 
 var esClient *elastic.Client
@@ -61,7 +62,9 @@ func (d recordDatabase) Insert(records []*kafka.Record) error {
 	defer cancel()
 	res, err := bulkRequest.Do(ctx)
 	if res.Errors {
-
+		for _, f := range res.Failed() {
+			return errors.New(fmt.Sprintf("%s", f.Error))
+		}
 	}
 
 	return err

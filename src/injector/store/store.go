@@ -1,8 +1,8 @@
 package store
 
 import (
-	"bitbucket.org/ubeedev/kakfa-elasticsearch-injector-go/src/elasticsearch"
-	"bitbucket.org/ubeedev/kakfa-elasticsearch-injector-go/src/kafka"
+	"bitbucket.org/ubeedev/kafka-elasticsearch-injector-go/src/elasticsearch"
+	"bitbucket.org/ubeedev/kafka-elasticsearch-injector-go/src/kafka"
 	"github.com/go-kit/kit/log"
 )
 

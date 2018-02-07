@@ -3,7 +3,7 @@ package injector
 import (
 	"context"
 
-	"bitbucket.org/ubeedev/kakfa-elasticsearch-injector-go/src/kafka"
+	"bitbucket.org/ubeedev/kafka-elasticsearch-injector-go/src/kafka"
 	"github.com/go-kit/kit/endpoint"
 )
 

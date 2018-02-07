@@ -6,12 +6,12 @@ import (
 
 	"strings"
 
-	"bitbucket.org/ubeedev/kakfa-elasticsearch-injector-go/src/injector"
-	"bitbucket.org/ubeedev/kakfa-elasticsearch-injector-go/src/kafka"
-	"bitbucket.org/ubeedev/kakfa-elasticsearch-injector-go/src/logger_builder"
-	"bitbucket.org/ubeedev/kakfa-elasticsearch-injector-go/src/metrics_instrumenter"
-	"bitbucket.org/ubeedev/kakfa-elasticsearch-injector-go/src/probes"
-	"bitbucket.org/ubeedev/kakfa-elasticsearch-injector-go/src/schema_registry"
+	"bitbucket.org/ubeedev/kafka-elasticsearch-injector-go/src/injector"
+	"bitbucket.org/ubeedev/kafka-elasticsearch-injector-go/src/kafka"
+	"bitbucket.org/ubeedev/kafka-elasticsearch-injector-go/src/logger_builder"
+	"bitbucket.org/ubeedev/kafka-elasticsearch-injector-go/src/metrics_instrumenter"
+	"bitbucket.org/ubeedev/kafka-elasticsearch-injector-go/src/probes"
+	"bitbucket.org/ubeedev/kafka-elasticsearch-injector-go/src/schema_registry"
 	"github.com/go-kit/kit/log/level"
 )
 

@@ -5,6 +5,8 @@ import (
 
 	"time"
 
+	"fmt"
+
 	"bitbucket.org/ubeedev/kafka-elasticsearch-injector-go/src/schema_registry"
 	"github.com/Shopify/sarama"
 	"github.com/linkedin/goavro"
@@ -12,12 +14,18 @@ import (
 
 type Record struct {
 	Topic     string
+	Partition int32
+	Offset    int64
 	Timestamp time.Time
 	Json      interface{}
 }
 
 func (r *Record) FormatTimestamp() string {
 	return r.Timestamp.Format("2006-01-02")
+}
+
+func (r *Record) GetId() string {
+	return fmt.Sprintf("%d:%d", r.Partition, r.Offset)
 }
 
 type Decoder struct {
@@ -42,6 +50,8 @@ func (d *Decoder) KafkaMessageToRecord(context context.Context, msg *sarama.Cons
 
 	return &Record{
 		Topic:     msg.Topic,
+		Partition: msg.Partition,
+		Offset:    msg.Offset,
 		Timestamp: msg.Timestamp,
 		Json:      native,
 	}, nil

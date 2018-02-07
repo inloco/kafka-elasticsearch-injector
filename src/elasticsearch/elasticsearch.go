@@ -53,12 +53,16 @@ func (d recordDatabase) Insert(records []*kafka.Record) error {
 		index := fmt.Sprintf("%s-%s", d.config.index, record.FormatTimestamp())
 		bulkRequest.Add(elastic.NewBulkIndexRequest().Index(index).
 			Type(d.config.index).
+			Id(record.GetId()).
 			Doc(record.Json))
 	}
 	timeout := d.config.bulkTimeout
 	ctx, cancel := context.WithTimeout(context.Background(), timeout)
 	defer cancel()
-	_, err := bulkRequest.Do(ctx)
+	res, err := bulkRequest.Do(ctx)
+	if res.Errors {
+
+	}
 
 	return err
 }

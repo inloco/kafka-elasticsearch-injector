@@ -10,6 +10,8 @@ import (
 	"fmt"
 	"time"
 
+	"encoding/json"
+
 	"bitbucket.org/ubeedev/kafka-elasticsearch-injector-go/src/kafka"
 	"bitbucket.org/ubeedev/kafka-elasticsearch-injector-go/src/kafka/fixtures"
 	"bitbucket.org/ubeedev/kafka-elasticsearch-injector-go/src/logger_builder"
@@ -79,15 +81,21 @@ func TestRecordDatabase_ReadinessCheck(t *testing.T) {
 
 func TestRecordDatabase_Insert(t *testing.T) {
 	now := time.Now()
-	record := fixtures.NewRecord(now)
+	record, id := fixtures.NewRecord(now)
 	index := fmt.Sprintf("%s-%s", config.index, record.FormatTimestamp())
 	err := db.Insert([]*kafka.Record{record})
 	db.GetClient().Refresh("_all").Do(context.Background())
+	var recordFromES fixtures.FixtureRecord
 	if assert.NoError(t, err) {
 		count, err := db.GetClient().Count(index).Do(context.Background())
 		if assert.NoError(t, err) {
 			assert.Equal(t, int64(1), count)
 		}
+		res, err := db.GetClient().Get().Index(index).Type(record.Topic).Id(record.GetId()).Do(context.Background())
+		if assert.NoError(t, err) {
+			json.Unmarshal(*res.Source, &recordFromES)
+		}
+		assert.Equal(t, recordFromES.Id, id)
 	}
 	db.GetClient().DeleteByQuery(index).Query(elastic.MatchAllQuery{}).Do(context.Background())
 }

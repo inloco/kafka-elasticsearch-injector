@@ -12,18 +12,18 @@ import (
 
 	"encoding/json"
 
-	"bitbucket.org/ubeedev/kafka-elasticsearch-injector-go/src/kafka"
 	"bitbucket.org/ubeedev/kafka-elasticsearch-injector-go/src/kafka/fixtures"
 	"bitbucket.org/ubeedev/kafka-elasticsearch-injector-go/src/logger_builder"
+	"bitbucket.org/ubeedev/kafka-elasticsearch-injector-go/src/models"
 	"github.com/olivere/elastic"
 	"github.com/stretchr/testify/assert"
 )
 
 var logger = logger_builder.NewLogger("elasticsearch-test")
 var config = Config{
-	host:        "http://localhost:9200",
-	index:       "my-topic",
-	bulkTimeout: 10 * time.Second,
+	Host:        "http://localhost:9200",
+	Index:       "my-topic",
+	BulkTimeout: 10 * time.Second,
 }
 var db = NewDatabase(logger, config)
 var template = `
@@ -58,12 +58,12 @@ var template = `
 `
 
 func TestMain(m *testing.M) {
-	templateExists, err := db.GetClient().IndexTemplateExists(config.index).Do(context.Background())
+	templateExists, err := db.GetClient().IndexTemplateExists(config.Index).Do(context.Background())
 	if err != nil {
 		panic(err)
 	}
 	if !templateExists {
-		_, err := db.GetClient().IndexPutTemplate(config.index).BodyString(template).Do(context.Background())
+		_, err := db.GetClient().IndexPutTemplate(config.Index).BodyString(template).Do(context.Background())
 		if err != nil {
 			panic(err)
 		}
@@ -82,8 +82,29 @@ func TestRecordDatabase_ReadinessCheck(t *testing.T) {
 func TestRecordDatabase_Insert(t *testing.T) {
 	now := time.Now()
 	record, id := fixtures.NewRecord(now)
-	index := fmt.Sprintf("%s-%s", config.index, record.FormatTimestamp())
-	err := db.Insert([]*kafka.Record{record})
+	index := fmt.Sprintf("%s-%s", config.Index, record.FormatTimestamp())
+	err := db.Insert([]*models.Record{record})
+	db.GetClient().Refresh("_all").Do(context.Background())
+	var recordFromES fixtures.FixtureRecord
+	if assert.NoError(t, err) {
+		count, err := db.GetClient().Count(index).Do(context.Background())
+		if assert.NoError(t, err) {
+			assert.Equal(t, int64(1), count)
+		}
+		res, err := db.GetClient().Get().Index(index).Type(record.Topic).Id(record.GetId()).Do(context.Background())
+		if assert.NoError(t, err) {
+			json.Unmarshal(*res.Source, &recordFromES)
+		}
+		assert.Equal(t, recordFromES.Id, id)
+	}
+	db.GetClient().DeleteByQuery(index).Query(elastic.MatchAllQuery{}).Do(context.Background())
+}
+
+func TestRecordDatabase_Insert_Multiple(t *testing.T) {
+	now := time.Now()
+	record, id := fixtures.NewRecord(now)
+	index := fmt.Sprintf("%s-%s", config.Index, record.FormatTimestamp())
+	err := db.Insert([]*models.Record{record, record})
 	db.GetClient().Refresh("_all").Do(context.Background())
 	var recordFromES fixtures.FixtureRecord
 	if assert.NoError(t, err) {

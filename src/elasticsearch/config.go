@@ -6,9 +6,9 @@ import (
 )
 
 type Config struct {
-	host        string
-	index       string
-	bulkTimeout time.Duration
+	Host        string
+	Index       string
+	BulkTimeout time.Duration
 }
 
 func NewConfig() Config {
@@ -21,8 +21,8 @@ func NewConfig() Config {
 		}
 	}
 	return Config{
-		host:        os.Getenv("ELASTICSEARCH_HOST"),
-		index:       os.Getenv("ES_INDEX"),
-		bulkTimeout: timeout,
+		Host:        os.Getenv("ELASTICSEARCH_HOST"),
+		Index:       os.Getenv("ES_INDEX"),
+		BulkTimeout: timeout,
 	}
 }

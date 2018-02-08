@@ -5,7 +5,7 @@ import (
 
 	"fmt"
 
-	"bitbucket.org/ubeedev/kafka-elasticsearch-injector-go/src/kafka"
+	"bitbucket.org/ubeedev/kafka-elasticsearch-injector-go/src/models"
 	"github.com/go-kit/kit/log"
 	"github.com/go-kit/kit/log/level"
 	"github.com/olivere/elastic"
@@ -21,7 +21,7 @@ type basicDatabase interface {
 
 type RecordDatabase interface {
 	basicDatabase
-	Insert(records []*kafka.Record) error
+	Insert(records []*models.Record) error
 	ReadinessCheck() bool
 }
 
@@ -32,7 +32,8 @@ type recordDatabase struct {
 
 func (d recordDatabase) GetClient() *elastic.Client {
 	if esClient == nil {
-		client, err := elastic.NewClient(elastic.SetURL(d.config.host))
+		fmt.Println(d.config.Host)
+		client, err := elastic.NewClient(elastic.SetURL(d.config.Host))
 		if err != nil {
 			level.Error(d.logger).Log("err", err, "message", "could not init elasticsearch client")
 			panic(err)
@@ -48,16 +49,16 @@ func (d recordDatabase) CloseClient() {
 	}
 }
 
-func (d recordDatabase) Insert(records []*kafka.Record) error {
+func (d recordDatabase) Insert(records []*models.Record) error {
 	bulkRequest := d.GetClient().Bulk()
 	for _, record := range records {
-		index := fmt.Sprintf("%s-%s", d.config.index, record.FormatTimestamp())
+		index := fmt.Sprintf("%s-%s", d.config.Index, record.FormatTimestamp())
 		bulkRequest.Add(elastic.NewBulkIndexRequest().Index(index).
-			Type(d.config.index).
+			Type(d.config.Index).
 			Id(record.GetId()).
 			Doc(record.Json))
 	}
-	timeout := d.config.bulkTimeout
+	timeout := d.config.BulkTimeout
 	ctx, cancel := context.WithTimeout(context.Background(), timeout)
 	defer cancel()
 	res, err := bulkRequest.Do(ctx)
@@ -71,7 +72,7 @@ func (d recordDatabase) Insert(records []*kafka.Record) error {
 }
 
 func (d recordDatabase) ReadinessCheck() bool {
-	info, _, err := d.GetClient().Ping(d.config.host).Do(context.Background())
+	info, _, err := d.GetClient().Ping(d.config.Host).Do(context.Background())
 	if err != nil {
 		level.Error(d.logger).Log("err", err, "message", "error pinging elasticsearch")
 		return false

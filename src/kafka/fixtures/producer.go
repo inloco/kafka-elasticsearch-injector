@@ -1,14 +1,14 @@
 package fixtures
 
 import (
-	"fmt"
 	"encoding/binary"
 	"errors"
+	"fmt"
 	"strings"
 	"sync"
 
-	"github.com/Shopify/sarama"
 	"bitbucket.org/ubeedev/kafka-elasticsearch-injector-go/src/schema_registry"
+	"github.com/Shopify/sarama"
 )
 
 const magic byte = 0
@@ -16,7 +16,7 @@ const magic byte = 0
 type KafkaEvent interface {
 	Topic() string
 	Schema() string
-	ToAvroSerialization() ([]byte, error) // should return the avro serialized object 
+	ToAvroSerialization() ([]byte, error) // should return the avro serialized object
 }
 
 type Producer interface {
@@ -43,7 +43,7 @@ Config example :
 	config.Version = sarama.V0_10_0_0                  // This version is the same as in production
 */
 func NewProducer(kafkaAddr string, config *sarama.Config, schemaRegistry *schema_registry.SchemaRegistry) (Producer, error) {
-	sarama.MaxRequestSize = 20 * 1024 * 1024           // 20mb
+	sarama.MaxRequestSize = 20 * 1024 * 1024 // 20mb
 	client, err := sarama.NewAsyncProducer([]string{kafkaAddr}, config)
 	if err != nil {
 		return nil, err
@@ -57,7 +57,8 @@ func (this *AsyncProducer) Start() {
 		select {
 		case err := <-this.kafka.Errors():
 			fmt.Println("failed to publish event to kafka: ", err.Error())
-		case _ = <-this.kafka.Successes():
+		case x := <-this.kafka.Successes():
+			fmt.Println(x)
 		}
 	}
 }
@@ -137,4 +138,3 @@ func (this *FixtureSchemaRegistry) RegisterOrGetSchemaId(event KafkaEvent) (int,
 
 	return id, nil
 }
-

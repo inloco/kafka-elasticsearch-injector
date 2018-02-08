@@ -45,12 +45,16 @@ func (sr *SchemaRegistry) ValidateSchema(logger log.Logger) error {
 }
 
 func (sr *SchemaRegistry) GetSchema(subject string, version int32) (string, error) {
-	if byVersion, exists := sr.schemas[subject]; exists {
+	byVersion, existsSubject := sr.schemas[subject]
+	if existsSubject {
 		if schemaStr, exists := byVersion[version]; exists {
 			return schemaStr, nil
 		}
 	}
 	schema, err := sr.Client.GetSchemaBySubject(subject, int(version))
+	if !existsSubject {
+		sr.schemas[subject] = make(map[int32]string)
+	}
 	sr.schemas[subject][version] = schema.Schema
 	return schema.Schema, err
 }

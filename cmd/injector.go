@@ -6,6 +6,9 @@ import (
 
 	"strings"
 
+	"os/signal"
+	"syscall"
+
 	"bitbucket.org/ubeedev/kafka-elasticsearch-injector-go/src/injector"
 	"bitbucket.org/ubeedev/kafka-elasticsearch-injector-go/src/kafka"
 	"bitbucket.org/ubeedev/kafka-elasticsearch-injector-go/src/logger_builder"
@@ -48,17 +51,16 @@ func main() {
 	service := injector.NewService(logger)
 	p.SetReadinessCheck(service.ReadinessCheck)
 
-	endpoints := injector.Endpoints{
-		Insert: injector.MakeInsertEndpoint(service),
-	}
+	endpoints := injector.MakeEndpoints(service)
 
-	consumer, err := injector.MakeKafkaConsumer(&endpoints, logger, schemaRegistry, kafkaConfig)
+	consumer, err := injector.MakeKafkaConsumer(endpoints, logger, schemaRegistry, kafkaConfig)
 	if err != nil {
 		level.Error(logger).Log("err", err, "message", "error creating kafka consumer")
 		panic(err)
 	}
-	k := kafka.NewKafka()
-	k.RegisterConsumer(consumer)
+	k := kafka.NewKafka(os.Getenv("KAFKA_ADDRESS"), consumer)
 
-	k.Start()
+	signals := make(chan os.Signal, 1)
+	signal.Notify(signals, syscall.SIGINT, syscall.SIGTERM)
+	k.Start(signals)
 }

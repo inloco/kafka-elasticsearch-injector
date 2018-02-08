@@ -5,18 +5,39 @@ import (
 
 	"math/rand"
 
-	"bitbucket.org/ubeedev/kafka-elasticsearch-injector-go/src/kafka"
+	"bitbucket.org/ubeedev/kafka-elasticsearch-injector-go/src/models"
+	"github.com/linkedin/goavro"
 )
 
-const DefaultTopic = "my-topic"
+const DefaultTopic = "my-topic-22"
 
 type FixtureRecord struct {
 	Id string
 }
 
-func NewRecord(ts time.Time) (*kafka.Record, string) {
+func (r *FixtureRecord) Topic() string {
+	return DefaultTopic
+}
+
+func (r *FixtureRecord) Schema() string {
+	return `{"type": "record","name": "FixtureRecord","fields": [{"name": "id","type":"string"}]}`
+}
+
+func (r *FixtureRecord) ToAvroSerialization() ([]byte, error) {
+	codec, err := goavro.NewCodec(r.Schema())
+	if err != nil {
+		return []byte{}, nil
+	}
+	return codec.BinaryFromNative(nil, map[string]interface{}{"id": r.Id})
+}
+
+func NewFixtureRecord() FixtureRecord {
+	return FixtureRecord{Id: string(rand.Int31())}
+}
+
+func NewRecord(ts time.Time) (*models.Record, string) {
 	id := string(rand.Int31())
-	return &kafka.Record{
+	return &models.Record{
 		Topic:     DefaultTopic,
 		Partition: rand.Int31(),
 		Offset:    rand.Int63(),

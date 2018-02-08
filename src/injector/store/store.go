@@ -2,12 +2,12 @@ package store
 
 import (
 	"bitbucket.org/ubeedev/kafka-elasticsearch-injector-go/src/elasticsearch"
-	"bitbucket.org/ubeedev/kafka-elasticsearch-injector-go/src/kafka"
+	"bitbucket.org/ubeedev/kafka-elasticsearch-injector-go/src/models"
 	"github.com/go-kit/kit/log"
 )
 
 type Store interface {
-	Insert(records []*kafka.Record) error
+	Insert(records []*models.Record) error
 	ReadinessCheck() bool
 }
 
@@ -15,7 +15,7 @@ type basicStore struct {
 	db elasticsearch.RecordDatabase
 }
 
-func (s basicStore) Insert(records []*kafka.Record) error {
+func (s basicStore) Insert(records []*models.Record) error {
 	return s.db.Insert(records)
 }
 

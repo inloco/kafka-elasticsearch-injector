@@ -3,19 +3,19 @@ package kafka
 import (
 	"context"
 	"os"
-	"os/signal"
-	"syscall"
 
 	"time"
 
 	"sync"
 
+	"fmt"
+
+	"bitbucket.org/ubeedev/kafka-elasticsearch-injector-go/src/models"
 	"github.com/Shopify/sarama"
 	"github.com/bsm/sarama-cluster"
 	"github.com/go-kit/kit/endpoint"
 	"github.com/go-kit/kit/log"
 	"github.com/go-kit/kit/log/level"
-	"github.com/inloco/raygun"
 )
 
 type kafka struct {
@@ -40,26 +40,22 @@ type topicPartitionOffset struct {
 	offset    int64
 }
 
-func NewKafka() kafka {
-	address := os.Getenv("KAFKA_ADDRESS")
+func NewKafka(address string, consumer Consumer) kafka {
 	brokers := []string{address}
 	config := cluster.NewConfig()
 	config.Consumer.Return.Errors = true
 	config.Group.Return.Notifications = true
 
-	config.Version = sarama.V0_10_2_0
+	config.Version = sarama.V0_10_0_0
 
 	return kafka{
-		brokers: brokers,
-		config:  config,
+		brokers:  brokers,
+		config:   config,
+		consumer: consumer,
 	}
 }
 
-func (k *kafka) RegisterConsumer(consumer Consumer) {
-	k.consumer = consumer
-}
-
-func (k *kafka) Start() {
+func (k *kafka) Start(signals chan os.Signal) {
 	topics := k.consumer.Topics
 	concurrency := k.consumer.Concurrency
 	consumer, err := cluster.NewConsumer(k.brokers, k.consumer.Group, topics, k.config)
@@ -69,10 +65,8 @@ func (k *kafka) Start() {
 	defer consumer.Close()
 
 	// trap SIGINT to trigger a shutdown.
-	signals := make(chan os.Signal, 1)
-	signal.Notify(signals, syscall.SIGINT, syscall.SIGTERM)
 
-	buffSize := k.consumer.BatchSize
+	buffSize := 1
 	// Fan-out channel
 	consumerCh := make(chan *sarama.ConsumerMessage, buffSize*concurrency*10)
 	// Update offset channel
@@ -80,10 +74,11 @@ func (k *kafka) Start() {
 	for i := 0; i < concurrency; i++ {
 		go func() {
 			buf := make([]*sarama.ConsumerMessage, buffSize)
-			var decoded []*Record
+			var decoded []*models.Record
 			idx := 0
 			for {
 				kafkaMsg := <-consumerCh
+				level.Info(k.consumer.Logger).Log("bufsize", cap(buf), "buflen", len(buf), "idx", idx)
 				buf[idx] = kafkaMsg
 				idx++
 				for idx == buffSize {
@@ -100,7 +95,6 @@ func (k *kafka) Start() {
 					}
 					if res, err := k.consumer.Endpoint(context.Background(), decoded); err != nil {
 						level.Error(k.consumer.Logger).Log("message", "error on endpoint call", "err", err.Error())
-						raygun.CaptureError(err)
 						var _ = res // ignore res (for now)
 						continue
 					}
@@ -122,7 +116,7 @@ func (k *kafka) Start() {
 			lock.Lock()
 			currentOffset, exists := partitionToOffset[offset.topic][offset.partition]
 			if !exists || offset.offset > currentOffset {
-				partitionToOffset[offset.topic][offset.partition] = offset.offset
+				partitionToOffset[offset.topic][offset.partition] = offset.offset //TODO nil
 			}
 			lock.Unlock()
 		}
@@ -155,6 +149,7 @@ func (k *kafka) Start() {
 		}
 		select {
 		case msg, more := <-consumer.Messages():
+			fmt.Println("got message")
 			if more {
 				consumerCh <- msg
 			}
@@ -167,7 +162,7 @@ func (k *kafka) Start() {
 			}
 		case ntf, more := <-consumer.Notifications():
 			if more {
-				level.Debug(k.consumer.Logger).Log(
+				level.Info(k.consumer.Logger).Log(
 					"message", "Partitions rebalanced",
 					"notification", ntf,
 				)

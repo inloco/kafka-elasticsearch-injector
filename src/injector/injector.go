@@ -9,7 +9,7 @@ import (
 	"github.com/go-kit/kit/log/level"
 )
 
-func MakeKafkaConsumer(endpoints *Endpoints, logger log.Logger, schemaRegistry *schema_registry.SchemaRegistry, kafkaConfig *kafka.Config) (kafka.Consumer, error) {
+func MakeKafkaConsumer(endpoints Endpoints, logger log.Logger, schemaRegistry *schema_registry.SchemaRegistry, kafkaConfig *kafka.Config) (kafka.Consumer, error) {
 
 	err := schemaRegistry.ValidateSchema(logger)
 	if err != nil {
@@ -28,7 +28,7 @@ func MakeKafkaConsumer(endpoints *Endpoints, logger log.Logger, schemaRegistry *
 	return kafka.Consumer{
 		Topics:      kafkaConfig.Topics,
 		Group:       kafkaConfig.ConsumerGroup,
-		Endpoint:    endpoints.Insert,
+		Endpoint:    endpoints.Insert(),
 		Decoder:     deserializer.KafkaMessageToRecord,
 		Logger:      logger,
 		Concurrency: concurrency,

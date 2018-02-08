@@ -13,7 +13,7 @@ const (
 )
 
 type SchemaRegistry struct {
-	client  schemaregistry.Client
+	Client  schemaregistry.Client
 	schemas map[string]map[int32]string
 	Value   *Schema
 	Key     *Schema
@@ -25,7 +25,7 @@ func (sr *SchemaRegistry) ValidateSchema(logger log.Logger) error {
 		return err
 	}
 
-	schema, err := sr.client.GetLatestSchema(sr.Value.Subject)
+	schema, err := sr.Client.GetLatestSchema(sr.Value.Subject)
 	if err != nil {
 		return err
 	}
@@ -50,7 +50,7 @@ func (sr *SchemaRegistry) GetSchema(subject string, version int32) (string, erro
 			return schemaStr, nil
 		}
 	}
-	schema, err := sr.client.GetSchemaBySubject(subject, int(version))
+	schema, err := sr.Client.GetSchemaBySubject(subject, int(version))
 	sr.schemas[subject][version] = schema.Schema
 	return schema.Schema, err
 }
@@ -61,7 +61,7 @@ func NewSchemaRegistry(url string, value *Schema) (*SchemaRegistry, error) {
 		return nil, err
 	}
 	return &SchemaRegistry{
-		client:  client,
+		Client:  client,
 		schemas: make(map[string]map[int32]string),
 		Value:   value,
 	}, nil

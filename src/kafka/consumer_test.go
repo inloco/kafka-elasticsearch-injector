@@ -70,11 +70,7 @@ var (
 )
 
 func TestMain(m *testing.M) {
-	registry, err := schema_registry.NewSchemaRegistry("http://localhost:8081", &schema_registry.Schema{
-		Type:    schema_registry.SchemaTypeValue,
-		Version: "1",
-		Subject: fixtures.DefaultTopic + "-value",
-	})
+	registry, err := schema_registry.NewSchemaRegistry("http://localhost:8081")
 	if err != nil {
 		panic(err)
 	}

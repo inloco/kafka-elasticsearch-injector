@@ -31,21 +31,17 @@ func main() {
 	)
 	go p.Serve()
 	metrics_instrumenter.Register()
-	schemaRegistry, err := schema_registry.NewSchemaRegistry(os.Getenv("SCHEMA_REGISTRY_URL"), &schema_registry.Schema{
-		Type:    schema_registry.SchemaTypeValue,
-		Version: os.Getenv("SCHEMA_REGISTRY_VISIT_VERSION"),
-		Subject: os.Getenv("SCHEMA_REGISTRY_VISIT_SUBJECT"),
-	})
+	schemaRegistry, err := schema_registry.NewSchemaRegistry(os.Getenv("SCHEMA_REGISTRY_URL"))
 	if err != nil {
 		level.Error(logger).Log("err", err, "message", "failed to create schema registry client")
 	}
 
 	kafkaConfig := &kafka.Config{
 		Type:          kafka.KafkaConsumer,
-		Topics:        strings.Split(os.Getenv("KAFKA_VISITS_TOPIC"), ","),
-		ConsumerGroup: os.Getenv("KAFKA_VISITS_CONSUMER_GROUP"),
-		Concurrency:   os.Getenv("KAFKA_VISITS_CONSUMER_CONCURRENCY"),
-		BatchSize:     os.Getenv("KAFKA_VISITS_CONSUMER_BATCH_SIZE"),
+		Topics:        strings.Split(os.Getenv("KAFKA_TOPICS"), ","),
+		ConsumerGroup: os.Getenv("KAFKA_CONSUMER_GROUP"),
+		Concurrency:   os.Getenv("KAFKA_CONSUMER_CONCURRENCY"),
+		BatchSize:     os.Getenv("KAFKA_CONSUMER_BATCH_SIZE"),
 	}
 
 	service := injector.NewService(logger)

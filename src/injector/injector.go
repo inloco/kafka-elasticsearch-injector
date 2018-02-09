@@ -10,12 +10,6 @@ import (
 )
 
 func MakeKafkaConsumer(endpoints Endpoints, logger log.Logger, schemaRegistry *schema_registry.SchemaRegistry, kafkaConfig *kafka.Config) (kafka.Consumer, error) {
-
-	err := schemaRegistry.ValidateSchema(logger)
-	if err != nil {
-		return kafka.Consumer{}, err
-	}
-
 	concurrency, err := strconv.Atoi(kafkaConfig.Concurrency)
 	if err != nil {
 		level.Warn(logger).Log("err", err, "message", "failed to get consumer concurrency")

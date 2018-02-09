@@ -88,7 +88,7 @@ func (k *kafka) Start(signals chan os.Signal, notifications chan Notification) {
 						req, err := k.consumer.Decoder(nil, msg)
 						if err != nil {
 							level.Error(k.consumer.Logger).Log(
-								"message", "Error decoding visit message",
+								"message", "Error decoding message",
 								"err", err.Error(),
 							)
 							continue

@@ -1,0 +1,110 @@
+version: 2
+jobs:
+  build:
+    working_directory: /go/src
+    environment:
+      - PACKAGE_PATH: "bitbucket.org/ubeedev/kafka-elasticsearch-injector-go"
+      - LOCAL_BIN_PATH: "~/bin:$PATH"
+    docker:
+      - image: circleci/golang:1.9
+        environment:
+          DOCKER_REPO: inlocomedia/kafka-elasticsearch-injector-go
+      - image: confluentinc/cp-zookeeper:3.1.1
+        environment:
+          - ZOOKEEPER_CLIENT_PORT=2181
+      - image: confluentinc/cp-kafka:3.1.1
+        environment:
+          - KAFKA_ZOOKEEPER_CONNECT=localhost:2181
+          - KAFKA_ADVERTISED_LISTENERS=PLAINTEXT://localhost:9092
+      - image: confluentinc/cp-schema-registry:3.1.1
+        environment:
+          - SCHEMA_REGISTRY_KAFKASTORE_CONNECTION_URL=localhost:2181
+          - SCHEMA_REGISTRY_HOST_NAME=localhost
+          - SCHEMA_REGISTRY_LISTENERS=http://localhost:8081
+      - image: elasticsearch:5-alpine
+        environment:
+          ES_JAVA_OPTS: -Xms750m -Xmx750m
+          discovery.type: single-node
+          http.host: 0.0.0.0
+          transport.host: 127.0.0.1
+    steps:
+      - checkout:
+          path: $PACKAGE_PATH
+          pwd: /go/src/bitbucket.org/ubeedev/kafka-elasticsearch-injector-go
+      - run:
+          name: Generate helper files
+          command: |
+            echo $(git rev-parse --short HEAD) > HEAD
+          pwd: /go/src/bitbucket.org/ubeedev/kafka-elasticsearch-injector-go
+      - setup_remote_docker:
+          reusable: true
+      - run:
+          name: Login to Docker Hub
+          command: |
+            docker info
+            docker login --username $DOCKER_USER --password $DOCKER_PASSWORD
+      - run:
+          name: "Make golang get play nice with bitbucket repositories"
+          command: |
+            git config --global http.https://gopkg.in.followRedirects true
+            git config --global url."git@bitbucket.org:".insteadOf "https://bitbucket.org/"
+            cat ~/.gitconfig
+            ssh-keyscan bitbucket.org >> ~/.ssh/known_hosts
+          pwd: /go/src/bitbucket.org/ubeedev/kafka-elasticsearch-injector-go
+      - run:
+          name: "Install dep"
+          command: go get -u github.com/golang/dep/...
+          pwd: /go/src/bitbucket.org/ubeedev/kafka-elasticsearch-injector-go
+      - restore_cache:
+          keys:
+            - kafka-elasticsearch-injector-go-{{ .Branch }}-{{ checksum "/go/src/bitbucket.org/ubeedev/kafka-elasticsearch-injector-go/Gopkg.lock" }}
+            - kafka-elasticsearch-injector-go-develop-{{ checksum "/go/src/bitbucket.org/ubeedev/kafka-elasticsearch-injector-go/Gopkg.lock" }}
+      - run:
+          name: "Install package deps"
+          command: |
+            if [ ! -d "vendor/" ]; then
+              dep ensure -v
+            fi
+          pwd: /go/src/bitbucket.org/ubeedev/kafka-elasticsearch-injector-go
+      - save_cache:
+          key: kafka-elasticsearch-injector-go-{{ .Branch }}-{{ checksum "/go/src/bitbucket.org/ubeedev/kafka-elasticsearch-injector-go/Gopkg.lock" }}
+          paths:
+            - /go/src/bitbucket.org/ubeedev/kafka-elasticsearch-injector-go/vendor
+      - run:
+          name: "Make sure elasticsearch is up and running"
+          command: |
+            count=0; \
+              until nc -z localhost 9200 || ((count ++ >= 10)); \
+              do echo "Retrying: Verify if Cassandra is ready"; sleep 5; done
+      - run:
+          name: "Run project tests (excluding vendor)"
+          command: go test $(go list ./... | grep -v /vendor/)
+          pwd: /go/src/bitbucket.org/ubeedev/kafka-elasticsearch-injector-go
+      - run:
+          name: Build injector
+          command: GOOS=linux GOARCH=amd64 go build -a --ldflags="-s" -o bin/injector cmd/injector.go
+          pwd: /go/src/bitbucket.org/ubeedev/kafka-elasticsearch-injector-go
+      - run:
+          name: Build injector docker image
+          command: |
+            docker build --rm=false -t "${DOCKER_REPO}:ci" -f cmd/Dockerfile .
+          pwd: /go/src/bitbucket.org/ubeedev/kafka-elasticsearch-injector-go
+      - deploy:
+          name: Push to Docker Hub
+          command: |
+            if [ "${CIRCLE_BRANCH}" == "master" ]; then
+              docker tag "$repo:ci" "${DOCKER_REPO}:$(cat VERSION)"
+              docker push "${DOCKER_REPO}:$(cat VERSION)"
+              docker tag "${DOCKER_REPO}:ci" "${DOCKER_REPO}:master"
+              docker push "${DOCKER_REPO}:master"
+            elif [[ $(echo "${CIRCLE_BRANCH}"| grep -c -e "hotfix\/.*") -gt 0 ]]; then
+              docker tag "${DOCKER_REPO}:ci" "${DOCKER_REPO}:$(cat VERSION)-pre"
+              docker push "${DOCKER_REPO}:$(cat VERSION)-pre"
+            elif [[ $(echo "${CIRCLE_BRANCH}"| grep -c -e "release\/.*") -gt 0 ]]; then
+              docker tag "${DOCKER_REPO}:ci" "${DOCKER_REPO}:$(cat VERSION)-pre"
+              docker push "${DOCKER_REPO}:$(cat VERSION)-pre"
+            else
+              docker tag "${DOCKER_REPO}:ci" "${DOCKER_REPO}:$(cat VERSION)-$(cat HEAD)"
+              docker push "${DOCKER_REPO}:$(cat VERSION)-$(cat HEAD)"
+            fi
+          pwd: /go/src/bitbucket.org/ubeedev/kafka-elasticsearch-injector-go

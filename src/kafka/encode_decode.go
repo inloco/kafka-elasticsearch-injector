@@ -3,8 +3,6 @@ package kafka
 import (
 	"context"
 
-	"fmt"
-
 	"bitbucket.org/ubeedev/kafka-elasticsearch-injector-go/src/models"
 	"bitbucket.org/ubeedev/kafka-elasticsearch-injector-go/src/schema_registry"
 	"github.com/Shopify/sarama"
@@ -25,7 +23,6 @@ func (d *Decoder) KafkaMessageToRecord(context context.Context, msg *sarama.Cons
 	schemaId := getSchemaId(msg)
 	avroRecord := msg.Value[5:]
 	schema, err := d.SchemaRegistry.GetSchema(msg.Topic+"-value", schemaId)
-	fmt.Println(schema)
 	if err != nil {
 		return nil, err
 	}

@@ -8,14 +8,19 @@ import (
 
 	"sync"
 
-	"fmt"
-
 	"bitbucket.org/ubeedev/kafka-elasticsearch-injector-go/src/models"
 	"github.com/Shopify/sarama"
 	"github.com/bsm/sarama-cluster"
 	"github.com/go-kit/kit/endpoint"
 	"github.com/go-kit/kit/log"
 	"github.com/go-kit/kit/log/level"
+)
+
+type Notification int32
+
+const (
+	Ready Notification = iota
+	Inserted
 )
 
 type kafka struct {
@@ -55,7 +60,7 @@ func NewKafka(address string, consumer Consumer) kafka {
 	}
 }
 
-func (k *kafka) Start(signals chan os.Signal) {
+func (k *kafka) Start(signals chan os.Signal, notifications chan Notification) {
 	topics := k.consumer.Topics
 	concurrency := k.consumer.Concurrency
 	consumer, err := cluster.NewConsumer(k.brokers, k.consumer.Group, topics, k.config)
@@ -63,8 +68,6 @@ func (k *kafka) Start(signals chan os.Signal) {
 		panic(err)
 	}
 	defer consumer.Close()
-
-	// trap SIGINT to trigger a shutdown.
 
 	buffSize := 1
 	// Fan-out channel
@@ -78,7 +81,6 @@ func (k *kafka) Start(signals chan os.Signal) {
 			idx := 0
 			for {
 				kafkaMsg := <-consumerCh
-				level.Info(k.consumer.Logger).Log("bufsize", cap(buf), "buflen", len(buf), "idx", idx)
 				buf[idx] = kafkaMsg
 				idx++
 				for idx == buffSize {
@@ -98,6 +100,7 @@ func (k *kafka) Start(signals chan os.Signal) {
 						var _ = res // ignore res (for now)
 						continue
 					}
+					notifications <- Inserted
 					for _, msg := range buf {
 						offsetCh <- &topicPartitionOffset{msg.Topic, msg.Partition, msg.Offset}
 						consumer.MarkOffset(msg, "") // mark message as processed
@@ -109,14 +112,18 @@ func (k *kafka) Start(signals chan os.Signal) {
 		}()
 	}
 	lock := sync.RWMutex{}
-	partitionToOffset := make(map[string]map[int32]int64)
+	topicPartitionToOffset := make(map[string]map[int32]int64)
 	go func() {
 		for {
 			offset := <-offsetCh
 			lock.Lock()
-			currentOffset, exists := partitionToOffset[offset.topic][offset.partition]
+			currentOffset, exists := topicPartitionToOffset[offset.topic][offset.partition]
 			if !exists || offset.offset > currentOffset {
-				partitionToOffset[offset.topic][offset.partition] = offset.offset //TODO nil
+				_, exists := topicPartitionToOffset[offset.topic]
+				if !exists {
+					topicPartitionToOffset[offset.topic] = make(map[int32]int64)
+				}
+				topicPartitionToOffset[offset.topic][offset.partition] = offset.offset //TODO nil
 			}
 			lock.Unlock()
 		}
@@ -127,7 +134,7 @@ func (k *kafka) Start(signals chan os.Signal) {
 			for topic, partitions := range consumer.HighWaterMarks() {
 				for partition, maxOffset := range partitions {
 					lock.RLock()
-					offset, ok := partitionToOffset[topic][partition]
+					offset, ok := topicPartitionToOffset[topic][partition]
 					lock.RUnlock()
 					if ok {
 						delay := maxOffset - offset
@@ -149,7 +156,6 @@ func (k *kafka) Start(signals chan os.Signal) {
 		}
 		select {
 		case msg, more := <-consumer.Messages():
-			fmt.Println("got message")
 			if more {
 				consumerCh <- msg
 			}
@@ -166,6 +172,9 @@ func (k *kafka) Start(signals chan os.Signal) {
 					"message", "Partitions rebalanced",
 					"notification", ntf,
 				)
+				if ntf.Type == cluster.RebalanceOK {
+					notifications <- Ready
+				}
 			}
 		case <-signals:
 			return

@@ -62,5 +62,13 @@ func main() {
 
 	signals := make(chan os.Signal, 1)
 	signal.Notify(signals, syscall.SIGINT, syscall.SIGTERM)
-	k.Start(signals)
+	notifications := make(chan kafka.Notification, 10)
+	go func() {
+		for {
+			select {
+			case _ = <-notifications: //ignore notifications
+			}
+		}
+	}()
+	k.Start(signals, notifications)
 }

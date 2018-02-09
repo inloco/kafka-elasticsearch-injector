@@ -23,6 +23,7 @@ type Producer interface {
 	Publish(KafkaEvent) error
 	Start()
 	Close() error
+	GetSuccesses() <-chan *sarama.ProducerMessage
 }
 type FixtureSchemaRegistry struct {
 	*schema_registry.SchemaRegistry
@@ -61,6 +62,10 @@ func (this *AsyncProducer) Start() {
 			fmt.Println(x)
 		}
 	}
+}
+
+func (this *AsyncProducer) GetSuccesses() <-chan *sarama.ProducerMessage {
+	return this.kafka.Successes()
 }
 
 func (this *AsyncProducer) Close() error {
@@ -126,6 +131,7 @@ func (this *FixtureSchemaRegistry) RegisterOrGetSchemaId(event KafkaEvent) (int,
 	}
 
 	if registered {
+		fmt.Println(fmt.Sprintf("schema is registered: %d", s.Id))
 		return s.Id, nil
 	}
 

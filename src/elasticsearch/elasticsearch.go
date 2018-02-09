@@ -32,7 +32,6 @@ type recordDatabase struct {
 
 func (d recordDatabase) GetClient() *elastic.Client {
 	if esClient == nil {
-		fmt.Println(d.config.Host)
 		client, err := elastic.NewClient(elastic.SetURL(d.config.Host))
 		if err != nil {
 			level.Error(d.logger).Log("err", err, "message", "could not init elasticsearch client")
@@ -46,6 +45,7 @@ func (d recordDatabase) GetClient() *elastic.Client {
 func (d recordDatabase) CloseClient() {
 	if esClient != nil {
 		esClient.Stop()
+		esClient = nil
 	}
 }
 
@@ -62,9 +62,11 @@ func (d recordDatabase) Insert(records []*models.Record) error {
 	ctx, cancel := context.WithTimeout(context.Background(), timeout)
 	defer cancel()
 	res, err := bulkRequest.Do(ctx)
-	if res.Errors {
-		for _, f := range res.Failed() {
-			return errors.New(fmt.Sprintf("%s", f.Error))
+	if err == nil {
+		if res.Errors {
+			for _, f := range res.Failed() {
+				return errors.New(fmt.Sprintf("%s", f.Error))
+			}
 		}
 	}
 

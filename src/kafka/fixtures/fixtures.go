@@ -9,10 +9,10 @@ import (
 	"github.com/linkedin/goavro"
 )
 
-const DefaultTopic = "my-topic-22"
+const DefaultTopic = "my-topic"
 
 type FixtureRecord struct {
-	Id string
+	Id int32
 }
 
 func (r *FixtureRecord) Topic() string {
@@ -20,7 +20,7 @@ func (r *FixtureRecord) Topic() string {
 }
 
 func (r *FixtureRecord) Schema() string {
-	return `{"type": "record","name": "FixtureRecord","fields": [{"name": "id","type":"string"}]}`
+	return `{"type": "record","name": "FixtureRecord","fields": [{"name": "id","type":"int"}]}`
 }
 
 func (r *FixtureRecord) ToAvroSerialization() ([]byte, error) {
@@ -32,16 +32,16 @@ func (r *FixtureRecord) ToAvroSerialization() ([]byte, error) {
 }
 
 func NewFixtureRecord() FixtureRecord {
-	return FixtureRecord{Id: string(rand.Int31())}
+	return FixtureRecord{Id: rand.Int31()}
 }
 
-func NewRecord(ts time.Time) (*models.Record, string) {
-	id := string(rand.Int31())
+func NewRecord(ts time.Time) (*models.Record, int32) {
+	id := rand.Int31()
 	return &models.Record{
 		Topic:     DefaultTopic,
 		Partition: rand.Int31(),
 		Offset:    rand.Int63(),
 		Timestamp: ts,
-		Json:      map[string]string{"id": id},
+		Json:      map[string]int32{"id": id},
 	}, id
 }

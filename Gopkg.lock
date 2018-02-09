@@ -2,25 +2,6 @@
 
 
 [[projects]]
-  branch = "develop"
-  name = "bitbucket.org/ubeedev/engage"
-  packages = [
-    "src/logger_builder",
-    "src/visit_stats",
-    "src/visits"
-  ]
-  revision = "a11e9b53f0aad0fa44e347995e106314a76aed59"
-
-[[projects]]
-  name = "bitbucket.org/ubeedev/visit-datamart-api"
-  packages = [
-    "src/visits",
-    "src/visits/avro/fixtures"
-  ]
-  revision = "192f7ca2765d5b2cbd8394cd8751e39550ec9295"
-  version = "v1.2.0"
-
-[[projects]]
   name = "github.com/Shopify/sarama"
   packages = ["."]
   revision = "3b1b38866a79f06deddf0487d5c27ba0697ccd65"
@@ -104,18 +85,6 @@
   name = "github.com/golang/snappy"
   packages = ["."]
   revision = "553a641470496b2327abcac10b36396bd98e45c9"
-
-[[projects]]
-  branch = "master"
-  name = "github.com/inloco/raygun"
-  packages = ["."]
-  revision = "c1c55f0f9feea5b5809c97533776604cabcb0cca"
-
-[[projects]]
-  branch = "master"
-  name = "github.com/kaeuferportal/stack2struct"
-  packages = ["."]
-  revision = "6838fbadc9188e5d5778b0c708da95d90653bda0"
 
 [[projects]]
   branch = "master"
@@ -231,6 +200,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "d60eca85752432f662bd48402ebce129cbb6ee89f89bb275a093304fdea08cf9"
+  inputs-digest = "719f78158c57081bc047d4bbb63bb464b5dadabfc18c42a5a772321f60020a98"
   solver-name = "gps-cdcl"
   solver-version = 1

@@ -5,9 +5,11 @@ const (
 )
 
 type Config struct {
-	Type          string
-	Topics        []string
-	ConsumerGroup string
-	Concurrency   string
-	BatchSize     string
+	Type                  string
+	Topics                []string
+	ConsumerGroup         string
+	Concurrency           string
+	BatchSize             string
+	MetricsUpdateInterval string
+	BufferWaitTime        string
 }

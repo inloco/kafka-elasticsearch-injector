@@ -58,13 +58,6 @@ var (
 			return nil, service.Insert(records)
 		},
 	}
-	kafkaConfig = &Config{
-		Type:          KafkaConsumer,
-		Topics:        []string{fixtures.DefaultTopic},
-		ConsumerGroup: "my-consumer-group",
-		Concurrency:   "1",
-		BatchSize:     "1",
-	}
 	schemaRegistry *schema_registry.SchemaRegistry
 	k              kafka
 )
@@ -79,12 +72,15 @@ func TestMain(m *testing.M) {
 		SchemaRegistry: schemaRegistry,
 	}
 	consumer := Consumer{
-		Topics:      kafkaConfig.Topics,
-		Group:       kafkaConfig.ConsumerGroup,
-		Endpoint:    endpoints.Insert(),
-		Decoder:     decoder.KafkaMessageToRecord,
-		Logger:      logger,
-		Concurrency: 1,
+		Topics:                []string{fixtures.DefaultTopic},
+		Group:                 "my-consumer-group",
+		Endpoint:              endpoints.Insert(),
+		Decoder:               decoder.KafkaMessageToRecord,
+		Logger:                logger,
+		Concurrency:           1,
+		BatchSize:             1,
+		MetricsUpdateInterval: 30 * time.Second,
+		BufferWaitTime:        1 * time.Second,
 	}
 	k = NewKafka("localhost:9092", consumer)
 	retCode := m.Run()

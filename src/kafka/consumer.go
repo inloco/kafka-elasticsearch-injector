@@ -30,13 +30,15 @@ type kafka struct {
 }
 
 type Consumer struct {
-	Topics      []string
-	Group       string
-	Endpoint    endpoint.Endpoint
-	Decoder     DecodeMessageFunc
-	Logger      log.Logger
-	Concurrency int
-	BatchSize   int
+	Topics                []string
+	Group                 string
+	Endpoint              endpoint.Endpoint
+	Decoder               DecodeMessageFunc
+	Logger                log.Logger
+	Concurrency           int
+	BatchSize             int
+	MetricsUpdateInterval time.Duration
+	BufferWaitTime        time.Duration
 }
 
 type topicPartitionOffset struct {
@@ -69,7 +71,7 @@ func (k *kafka) Start(signals chan os.Signal, notifications chan Notification) {
 	}
 	defer consumer.Close()
 
-	buffSize := 1
+	buffSize := k.consumer.BatchSize
 	// Fan-out channel
 	consumerCh := make(chan *sarama.ConsumerMessage, buffSize*concurrency*10)
 	// Update offset channel
@@ -123,14 +125,14 @@ func (k *kafka) Start(signals chan os.Signal, notifications chan Notification) {
 				if !exists {
 					topicPartitionToOffset[offset.topic] = make(map[int32]int64)
 				}
-				topicPartitionToOffset[offset.topic][offset.partition] = offset.offset //TODO nil
+				topicPartitionToOffset[offset.topic][offset.partition] = offset.offset
 			}
 			lock.Unlock()
 		}
 	}()
 
 	go func() {
-		for range time.Tick(30 * time.Second) { //TODO parameter
+		for range time.Tick(k.consumer.MetricsUpdateInterval) {
 			for topic, partitions := range consumer.HighWaterMarks() {
 				for partition, maxOffset := range partitions {
 					lock.RLock()
@@ -148,7 +150,7 @@ func (k *kafka) Start(signals chan os.Signal, notifications chan Notification) {
 	}()
 
 	// consume messages, watch errors and notifications
-	waitTime := 1 * time.Second //TODO parameter
+	waitTime := k.consumer.BufferWaitTime
 	for {
 		if len(consumerCh) > cap(consumerCh) {
 			time.Sleep(waitTime) // channel is getting full, wait before pushing more messages

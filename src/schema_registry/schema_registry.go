@@ -1,7 +1,6 @@
 package schema_registry
 
 import (
-	"fmt"
 	"sync"
 
 	"github.com/datamountaineer/schema-registry"
@@ -15,20 +14,16 @@ type SchemaRegistry struct {
 }
 
 func (sr *SchemaRegistry) GetSchema(id int32) (string, error) {
-	schema, exists := sr.schemas.Load(id)
-	if exists {
-		schemaString, ok := schema.(string)
-		if ok {
+
+	if schema, exists := sr.schemas.Load(id); exists {
+		if schemaString, ok := schema.(string); ok {
 			return schemaString, nil
 		}
 	}
+
 	schema, err := sr.Client.GetSchemaById(int(id))
-	schemaString, ok := schema.(string)
-	if ok {
-		sr.schemas.Store(id, schema)
-		return schemaString, err
-	}
-	return INVALID_SCHEMA, fmt.Errorf("Schema received is not an string")
+	sr.schemas.Store(id, schema)
+	return schema, err
 }
 
 func NewSchemaRegistry(url string) (*SchemaRegistry, error) {

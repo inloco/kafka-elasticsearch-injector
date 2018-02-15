@@ -4,28 +4,19 @@ import (
 	"github.com/datamountaineer/schema-registry"
 )
 
-const (
-	SchemaTypeValue = "value"
-)
-
 type SchemaRegistry struct {
 	Client  schemaregistry.Client
-	schemas map[string]map[int32]string
+	schemas map[int32]string
 }
 
-func (sr *SchemaRegistry) GetSchema(subject string, version int32) (string, error) {
-	byVersion, existsSubject := sr.schemas[subject]
-	if existsSubject {
-		if schemaStr, exists := byVersion[version]; exists {
-			return schemaStr, nil
-		}
+func (sr *SchemaRegistry) GetSchema(id int32) (string, error) {
+	schema, exists := sr.schemas[id]
+	if exists {
+		return schema, nil
 	}
-	schema, err := sr.Client.GetSchemaBySubject(subject, int(version))
-	if !existsSubject {
-		sr.schemas[subject] = make(map[int32]string)
-	}
-	sr.schemas[subject][version] = schema.Schema
-	return schema.Schema, err
+	schema, err := sr.Client.GetSchemaById(int(id))
+	sr.schemas[id] = schema
+	return schema, err
 }
 
 func NewSchemaRegistry(url string) (*SchemaRegistry, error) {
@@ -35,7 +26,7 @@ func NewSchemaRegistry(url string) (*SchemaRegistry, error) {
 	}
 	return &SchemaRegistry{
 		Client:  client,
-		schemas: make(map[string]map[int32]string),
+		schemas: make(map[int32]string),
 	}, nil
 }
 

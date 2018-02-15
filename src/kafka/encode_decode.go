@@ -22,7 +22,7 @@ type Decoder struct {
 func (d *Decoder) KafkaMessageToRecord(context context.Context, msg *sarama.ConsumerMessage) (*models.Record, error) {
 	schemaId := getSchemaId(msg)
 	avroRecord := msg.Value[5:]
-	schema, err := d.SchemaRegistry.GetSchema(msg.Topic+"-value", schemaId)
+	schema, err := d.SchemaRegistry.GetSchema(schemaId)
 	if err != nil {
 		return nil, err
 	}

@@ -33,5 +33,5 @@
   version = "0.1.0"
 
 [[constraint]]
-  name = "github.com/linkedin/goavro"
+  name = "github.com/inloco/goavro"
   version = "2.1.0"

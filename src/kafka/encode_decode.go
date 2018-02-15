@@ -6,7 +6,7 @@ import (
 	"bitbucket.org/ubeedev/kafka-elasticsearch-injector-go/src/models"
 	"bitbucket.org/ubeedev/kafka-elasticsearch-injector-go/src/schema_registry"
 	"github.com/Shopify/sarama"
-	"github.com/linkedin/goavro"
+	"github.com/inloco/goavro"
 )
 
 // DecodeMessageFunc extracts a user-domain request object from an Kafka

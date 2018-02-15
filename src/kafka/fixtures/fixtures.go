@@ -6,7 +6,7 @@ import (
 	"math/rand"
 
 	"bitbucket.org/ubeedev/kafka-elasticsearch-injector-go/src/models"
-	"github.com/linkedin/goavro"
+	"github.com/inloco/goavro"
 )
 
 const DefaultTopic = "my-topic"

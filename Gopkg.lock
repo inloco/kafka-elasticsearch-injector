@@ -87,16 +87,16 @@
   revision = "553a641470496b2327abcac10b36396bd98e45c9"
 
 [[projects]]
+  name = "github.com/inloco/goavro"
+  packages = ["."]
+  revision = "94a7a9db615f35a39dd2b82089398b92fabad2ba"
+  version = "v2.1.0"
+
+[[projects]]
   branch = "master"
   name = "github.com/kr/logfmt"
   packages = ["."]
   revision = "b84e30acd515aadc4b783ad4ff83aff3299bdfe0"
-
-[[projects]]
-  name = "github.com/linkedin/goavro"
-  packages = ["."]
-  revision = "94a7a9db615f35a39dd2b82089398b92fabad2ba"
-  version = "v2.1.0"
 
 [[projects]]
   branch = "master"
@@ -200,6 +200,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "719f78158c57081bc047d4bbb63bb464b5dadabfc18c42a5a772321f60020a98"
+  inputs-digest = "73f804822e86ec92dff27f2cc11b5fa424f03f67d3d4df13148ed4091072d49d"
   solver-name = "gps-cdcl"
   solver-version = 1

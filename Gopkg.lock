@@ -87,10 +87,10 @@
   revision = "553a641470496b2327abcac10b36396bd98e45c9"
 
 [[projects]]
+  branch = "master"
   name = "github.com/inloco/goavro"
   packages = ["."]
-  revision = "94a7a9db615f35a39dd2b82089398b92fabad2ba"
-  version = "v2.1.0"
+  revision = "f44d92ef688143be5a615dc598759e24252b92a1"
 
 [[projects]]
   branch = "master"
@@ -200,6 +200,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "73f804822e86ec92dff27f2cc11b5fa424f03f67d3d4df13148ed4091072d49d"
+  inputs-digest = "4683f1db4045c6c1f0a7134ec1209eae2f7687901600e4ae9d4953ad8ee97ffd"
   solver-name = "gps-cdcl"
   solver-version = 1

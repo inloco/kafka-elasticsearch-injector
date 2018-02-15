@@ -34,4 +34,4 @@
 
 [[constraint]]
   name = "github.com/inloco/goavro"
-  version = "2.1.0"
+  branch = "master"

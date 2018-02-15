@@ -52,9 +52,13 @@ func (d recordDatabase) CloseClient() {
 func (d recordDatabase) Insert(records []*models.Record) error {
 	bulkRequest := d.GetClient().Bulk()
 	for _, record := range records {
-		index := fmt.Sprintf("%s-%s", d.config.Index, record.FormatTimestamp())
+		indexName := d.config.Index
+		if indexName == "" {
+			indexName = record.Topic
+		}
+		index := fmt.Sprintf("%s-%s", indexName, record.FormatTimestamp())
 		bulkRequest.Add(elastic.NewBulkIndexRequest().Index(index).
-			Type(d.config.Index).
+			Type(record.Topic).
 			Id(record.GetId()).
 			Doc(record.Json))
 	}

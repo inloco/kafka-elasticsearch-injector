@@ -82,7 +82,7 @@ jobs:
           pwd: /go/src/bitbucket.org/ubeedev/kafka-elasticsearch-injector-go
       - run:
           name: Build injector
-          command: GOOS=linux GOARCH=amd64 go build -a --ldflags="-s" -o bin/injector cmd/injector.go
+          command: GOOS=linux GOARCH=386 go build -a --ldflags="-s" -o bin/injector cmd/injector.go
           pwd: /go/src/bitbucket.org/ubeedev/kafka-elasticsearch-injector-go
       - run:
           name: Build injector docker image

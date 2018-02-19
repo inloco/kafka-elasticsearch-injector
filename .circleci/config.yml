@@ -93,7 +93,7 @@ jobs:
           name: Push to Docker Hub
           command: |
             if [ "${CIRCLE_BRANCH}" == "master" ]; then
-              docker tag "$repo:ci" "${DOCKER_REPO}:$(cat VERSION)"
+              docker tag "${DOCKER_REPO}:ci" "${DOCKER_REPO}:$(cat VERSION)"
               docker push "${DOCKER_REPO}:$(cat VERSION)"
               docker tag "${DOCKER_REPO}:ci" "${DOCKER_REPO}:master"
               docker push "${DOCKER_REPO}:master"

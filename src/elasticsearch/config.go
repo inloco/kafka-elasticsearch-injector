@@ -2,13 +2,16 @@ package elasticsearch
 
 import (
 	"os"
+	"strings"
 	"time"
 )
 
 type Config struct {
-	Host        string
-	Index       string
-	BulkTimeout time.Duration
+	Host               string
+	Index              string
+	IndexColumn        string
+	BlacklistedColumns []string
+	BulkTimeout        time.Duration
 }
 
 func NewConfig() Config {
@@ -21,8 +24,10 @@ func NewConfig() Config {
 		}
 	}
 	return Config{
-		Host:        os.Getenv("ELASTICSEARCH_HOST"),
-		Index:       os.Getenv("ES_INDEX"),
-		BulkTimeout: timeout,
+		Host:               os.Getenv("ELASTICSEARCH_HOST"),
+		Index:              os.Getenv("ES_INDEX"),
+		IndexColumn:        os.Getenv("ES_INDEX_COLUMN"),
+		BlacklistedColumns: strings.Split("ES_BLACKLISTED_COLUMNS", ","),
+		BulkTimeout:        timeout,
 	}
 }

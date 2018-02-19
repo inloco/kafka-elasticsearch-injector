@@ -11,6 +11,7 @@ import (
 	"github.com/go-kit/kit/log"
 	"github.com/go-kit/kit/log/level"
 	"github.com/olivere/elastic"
+	"github.com/pkg/errors"
 )
 
 var esClient *elastic.Client
@@ -33,7 +34,7 @@ type recordDatabase struct {
 
 func (d recordDatabase) GetClient() *elastic.Client {
 	if esClient == nil {
-		client, err := elastic.NewClient(elastic.SetURL(d.config.Host), elastic.SetSniff(false))
+		client, err := elastic.NewClient(elastic.SetURL(d.config.Host))
 		if err != nil {
 			level.Error(d.logger).Log("err", err, "message", "could not init elasticsearch client")
 			panic(err)
@@ -119,7 +120,7 @@ func (d recordDatabase) Insert(records []*models.Record) error {
 	if err == nil {
 		if res.Errors {
 			for _, f := range res.Failed() {
-				return fmt.Errorf(f.Error.Reason)
+				return errors.New(fmt.Sprintf("%s", f.Error))
 			}
 		}
 	}

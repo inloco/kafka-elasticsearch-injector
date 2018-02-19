@@ -123,7 +123,7 @@ func TestRecordDatabase_Insert_Multiple(t *testing.T) {
 	db.GetClient().DeleteByQuery(index).Query(elastic.MatchAllQuery{}).Do(context.Background())
 }
 
-func TestRecordDatabase_Insert_IndexColumn_Blacklist(t *testing.T) {
+func TestRecordDatabase_Insert_IndexColumnBlacklist(t *testing.T) {
 	now := time.Now()
 	record, id := fixtures.NewRecord(now)
 	index := fmt.Sprintf("%s-%d", config.Index, id)

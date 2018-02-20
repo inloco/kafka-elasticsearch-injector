@@ -37,11 +37,13 @@ func NewFixtureRecord() FixtureRecord {
 
 func NewRecord(ts time.Time) (*models.Record, int32) {
 	id := rand.Int31()
+	recordJSON := make(map[string]interface{})
+	recordJSON["id"] = id
 	return &models.Record{
 		Topic:     DefaultTopic,
 		Partition: rand.Int31(),
 		Offset:    rand.Int63(),
 		Timestamp: ts,
-		Json:      map[string]int32{"id": id},
+		Json:      recordJSON,
 	}, id
 }

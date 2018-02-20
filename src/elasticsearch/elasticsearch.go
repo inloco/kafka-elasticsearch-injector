@@ -2,7 +2,6 @@ package elasticsearch
 
 import (
 	"context"
-	"reflect"
 	"strconv"
 
 	"fmt"
@@ -53,12 +52,11 @@ func (d recordDatabase) CloseClient() {
 
 func getValueForColumn(recordMap map[string]interface{}, indexColumn string) (string, error) {
 	if value, ok := recordMap[indexColumn]; ok {
-		switch value.(type) {
+		switch castedValue := value.(type) {
 		case string:
-			return value.(string), nil
+			return castedValue, nil
 		case int32:
-			intVal := value.(int32)
-			return strconv.FormatInt(int64(intVal), 10), nil
+			return strconv.FormatInt(int64(castedValue), 10), nil
 		default:
 			return "", fmt.Errorf("Value from colum %s is not parseable to string", indexColumn)
 		}
@@ -80,33 +78,16 @@ func (d recordDatabase) Insert(records []*models.Record) error {
 			indexName = record.Topic
 		}
 		indexColumn := d.config.IndexColumn
-		blacklistedColumns := d.config.BlacklistedColumns
 		indexColumnValue := record.FormatTimestamp()
-		if indexColumn != "" || len(blacklistedColumns) > 0 {
-			recordMap := make(map[string]interface{})
-			jsonNativeType := reflect.ValueOf(record.Json)
-			if jsonNativeType.Kind() != reflect.Map {
-				return fmt.Errorf("could not unmarshall record JSON into map")
+		if indexColumn != "" {
+			newIndexColumnValue, err := getValueForColumn(record.Json, indexColumn)
+			if err != nil {
+				level.Error(d.logger).Log("err", err, "message", "Could not get column value from record.")
+				return err
 			}
-			for _, key := range jsonNativeType.MapKeys() {
-				if key.Kind() != reflect.String {
-					return fmt.Errorf("could not unmarshall record JSON into map keyed by string")
-				}
-				recordMap[key.String()] = jsonNativeType.MapIndex(key).Interface()
-			}
-			if indexColumn != "" {
-				newIndexColumnValue, err := getValueForColumn(recordMap, indexColumn)
-				indexColumnValue = newIndexColumnValue
-				if err != nil {
-					level.Error(d.logger).Log("err", err, "message", "Could not get column value from record.")
-					return err
-				}
-			}
-			if len(blacklistedColumns) > 0 {
-				removeBlacklistedColumns(&recordMap, blacklistedColumns)
-				record.Json = recordMap
-			}
+			indexColumnValue = newIndexColumnValue
 		}
+		removeBlacklistedColumns(&record.Json, d.config.BlacklistedColumns)
 		index := fmt.Sprintf("%s-%s", indexName, indexColumnValue)
 		bulkRequest.Add(elastic.NewBulkIndexRequest().Index(index).
 			Type(record.Topic).

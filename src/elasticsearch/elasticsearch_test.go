@@ -83,7 +83,7 @@ func TestRecordDatabase_ReadinessCheck(t *testing.T) {
 
 func TestRecordDatabase_Insert(t *testing.T) {
 	now := time.Now()
-	record, id := fixtures.NewRecord(now)
+	record, id, _ := fixtures.NewRecord(now)
 	index := fmt.Sprintf("%s-%s", config.Index, record.FormatTimestamp())
 	err := db.Insert([]*models.Record{record})
 	db.GetClient().Refresh("_all").Do(context.Background())
@@ -104,7 +104,7 @@ func TestRecordDatabase_Insert(t *testing.T) {
 
 func TestRecordDatabase_Insert_Multiple(t *testing.T) {
 	now := time.Now()
-	record, id := fixtures.NewRecord(now)
+	record, id, _ := fixtures.NewRecord(now)
 	index := fmt.Sprintf("%s-%s", config.Index, record.FormatTimestamp())
 	err := db.Insert([]*models.Record{record, record})
 	db.GetClient().Refresh("_all").Do(context.Background())
@@ -125,7 +125,7 @@ func TestRecordDatabase_Insert_Multiple(t *testing.T) {
 
 func TestRecordDatabase_Insert_IndexColumnBlacklist(t *testing.T) {
 	now := time.Now()
-	record, id := fixtures.NewRecord(now)
+	record, id, value := fixtures.NewRecord(now)
 	index := fmt.Sprintf("%s-%d", config.Index, id)
 	err := dbIndexColumnBlacklist.Insert([]*models.Record{record})
 	dbIndexColumnBlacklist.GetClient().Refresh("_all").Do(context.Background())
@@ -140,6 +140,7 @@ func TestRecordDatabase_Insert_IndexColumnBlacklist(t *testing.T) {
 			json.Unmarshal(*res.Source, &recordFromES)
 		}
 		assert.Empty(t, recordFromES.Id)
+		assert.Equal(t, value, recordFromES.Value)
 	}
 	dbIndexColumnBlacklist.GetClient().DeleteByQuery(index).Query(elastic.MatchAllQuery{}).Do(context.Background())
 }

@@ -12,7 +12,8 @@ import (
 const DefaultTopic = "my-topic"
 
 type FixtureRecord struct {
-	Id int32
+	Id    int32
+	Value int32
 }
 
 func (r *FixtureRecord) Topic() string {
@@ -35,15 +36,17 @@ func NewFixtureRecord() FixtureRecord {
 	return FixtureRecord{Id: rand.Int31()}
 }
 
-func NewRecord(ts time.Time) (*models.Record, int32) {
+func NewRecord(ts time.Time) (*models.Record, int32, int32) {
 	id := rand.Int31()
+	value := rand.Int31()
 	recordJSON := make(map[string]interface{})
 	recordJSON["id"] = id
+	recordJSON["value"] = value
 	return &models.Record{
 		Topic:     DefaultTopic,
 		Partition: rand.Int31(),
 		Offset:    rand.Int63(),
 		Timestamp: ts,
 		Json:      recordJSON,
-	}, id
+	}, id, value
 }

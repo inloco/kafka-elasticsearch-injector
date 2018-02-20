@@ -11,7 +11,7 @@ type Record struct {
 	Partition int32
 	Offset    int64
 	Timestamp time.Time
-	Json      interface{}
+	Json      map[string]interface{}
 }
 
 func (r *Record) FormatTimestamp() string {

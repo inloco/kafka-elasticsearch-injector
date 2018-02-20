@@ -2,7 +2,6 @@ package elasticsearch
 
 import (
 	"context"
-	"strconv"
 
 	"fmt"
 
@@ -50,26 +49,6 @@ func (d recordDatabase) CloseClient() {
 	}
 }
 
-func getValueForColumn(recordMap map[string]interface{}, indexColumn string) (string, error) {
-	if value, ok := recordMap[indexColumn]; ok {
-		switch castedValue := value.(type) {
-		case string:
-			return castedValue, nil
-		case int32:
-			return strconv.FormatInt(int64(castedValue), 10), nil
-		default:
-			return "", fmt.Errorf("Value from colum %s is not parseable to string", indexColumn)
-		}
-	}
-	return "", fmt.Errorf("could not get value from column %s", indexColumn)
-}
-
-func removeBlacklistedColumns(recordMap *map[string]interface{}, blacklistedColumns []string) {
-	for _, blacklistedColumn := range blacklistedColumns {
-		delete(*recordMap, blacklistedColumn)
-	}
-}
-
 func (d recordDatabase) Insert(records []*models.Record) error {
 	bulkRequest := d.GetClient().Bulk()
 	for _, record := range records {
@@ -80,14 +59,14 @@ func (d recordDatabase) Insert(records []*models.Record) error {
 		indexColumn := d.config.IndexColumn
 		indexColumnValue := record.FormatTimestamp()
 		if indexColumn != "" {
-			newIndexColumnValue, err := getValueForColumn(record.Json, indexColumn)
+			newIndexColumnValue, err := record.GetValueForField(indexColumn)
 			if err != nil {
 				level.Error(d.logger).Log("err", err, "message", "Could not get column value from record.")
 				return err
 			}
 			indexColumnValue = newIndexColumnValue
 		}
-		removeBlacklistedColumns(&record.Json, d.config.BlacklistedColumns)
+		record.RemoveBlacklistedFields(d.config.BlacklistedColumns)
 		index := fmt.Sprintf("%s-%s", indexName, indexColumnValue)
 		bulkRequest.Add(elastic.NewBulkIndexRequest().Index(index).
 			Type(record.Topic).

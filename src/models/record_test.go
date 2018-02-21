@@ -49,6 +49,6 @@ func createDummyRecord(fieldName string, fieldValue string) *Record {
 		Partition: rand.Int31(),
 		Offset:    rand.Int63(),
 		Timestamp: time.Now(),
-		Json:      map[string]interface{}{existentFieldName: existentFieldValue},
+		Json:      map[string]interface{}{fieldName: fieldValue},
 	}
 }

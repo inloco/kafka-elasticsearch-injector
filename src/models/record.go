@@ -37,8 +37,16 @@ func (r *Record) GetValueForField(field string) (string, error) {
 	return "", fmt.Errorf("could not get value from column %s", field)
 }
 
-func (r *Record) RemoveBlacklistedFields(blacklistedFields []string) {
+func (r *Record) FilteredFieldsJSON(blacklistedFields []string) map[string]interface{} {
+	blacklistedFieldsMap := make(map[string]bool)
 	for _, blacklistedField := range blacklistedFields {
-		delete(r.Json, blacklistedField)
+		blacklistedFieldsMap[blacklistedField] = true
 	}
+	filteredRecord := make(map[string]interface{})
+	for key, value := range r.Json {
+		if !blacklistedFieldsMap[key] {
+			filteredRecord[key] = value
+		}
+	}
+	return filteredRecord
 }

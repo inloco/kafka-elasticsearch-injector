@@ -28,19 +28,20 @@ func TestRecord_GetValueForField_FieldValueForExistentField(t *testing.T) {
 	}
 }
 
-func TestRecord_RemoveBlacklistedFields_NoOpForInexistentField(t *testing.T) {
+func TestRecord_FilteredFieldsJSON_NoOpForInexistentField(t *testing.T) {
 	record := createDummyRecord(existentFieldName, existentFieldValue)
 
-	record.RemoveBlacklistedFields([]string{inexistentFieldName})
-	assert.Contains(t, record.Json, existentFieldName)
+	filteredJson := record.FilteredFieldsJSON([]string{inexistentFieldName})
+	assert.Contains(t, filteredJson, existentFieldName)
 }
 
-func TestRecord_RemoveBlacklistedFields_DeletesExistentField(t *testing.T) {
+func TestRecord_FilteredFieldsJSON_DeletesExistentField(t *testing.T) {
 	record := createDummyRecord(existentFieldName, existentFieldValue)
 
-	record.RemoveBlacklistedFields([]string{existentFieldName})
-	assert.NotContains(t, record.Json, existentFieldName)
-	assert.Empty(t, record.Json)
+	filteredJson := record.FilteredFieldsJSON([]string{existentFieldName})
+	assert.Contains(t, record.Json, existentFieldName) // Record JSON is not changed.
+	assert.NotContains(t, filteredJson, existentFieldName)
+	assert.Empty(t, filteredJson)
 }
 
 func createDummyRecord(fieldName string, fieldValue string) *Record {

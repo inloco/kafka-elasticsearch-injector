@@ -56,11 +56,21 @@ func (d recordDatabase) Insert(records []*models.Record) error {
 		if indexName == "" {
 			indexName = record.Topic
 		}
-		index := fmt.Sprintf("%s-%s", indexName, record.FormatTimestamp())
+		indexColumn := d.config.IndexColumn
+		indexColumnValue := record.FormatTimestamp()
+		if indexColumn != "" {
+			newIndexColumnValue, err := record.GetValueForField(indexColumn)
+			if err != nil {
+				level.Error(d.logger).Log("err", err, "message", "Could not get column value from record.")
+				return err
+			}
+			indexColumnValue = newIndexColumnValue
+		}
+		index := fmt.Sprintf("%s-%s", indexName, indexColumnValue)
 		bulkRequest.Add(elastic.NewBulkIndexRequest().Index(index).
 			Type(record.Topic).
 			Id(record.GetId()).
-			Doc(record.Json))
+			Doc(record.FilteredFieldsJSON(d.config.BlacklistedColumns)))
 	}
 	timeout := d.config.BulkTimeout
 	ctx, cancel := context.WithTimeout(context.Background(), timeout)

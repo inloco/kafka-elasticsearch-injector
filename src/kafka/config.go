@@ -11,6 +11,5 @@ type Config struct {
 	Concurrency           string
 	BatchSize             string
 	MetricsUpdateInterval string
-	BufferWaitTime        string
 	BufferSize            string
 }

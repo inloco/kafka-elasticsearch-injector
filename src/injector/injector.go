@@ -32,6 +32,11 @@ func MakeKafkaConsumer(endpoints Endpoints, logger log.Logger, schemaRegistry *s
 		level.Warn(logger).Log("err", err, "message", "failed to get consumer buffer wait time")
 		bufferWaitTime = 1 * time.Second
 	}
+	bufferSize, err := strconv.Atoi(kafkaConfig.BufferSize)
+	if err != nil {
+		bufferSize = batchSize * concurrency
+	}
+
 	deserializer := &kafka.Decoder{
 		SchemaRegistry: schemaRegistry,
 	}
@@ -46,5 +51,6 @@ func MakeKafkaConsumer(endpoints Endpoints, logger log.Logger, schemaRegistry *s
 		BatchSize:             batchSize,
 		MetricsUpdateInterval: metricsUpdateInterval,
 		BufferWaitTime:        bufferWaitTime,
+		BufferSize:            bufferSize,
 	}, nil
 }

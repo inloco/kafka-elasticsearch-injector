@@ -39,6 +39,7 @@ type Consumer struct {
 	BatchSize             int
 	MetricsUpdateInterval time.Duration
 	BufferWaitTime        time.Duration
+	BufferSize            int
 }
 
 type topicPartitionOffset struct {
@@ -73,7 +74,7 @@ func (k *kafka) Start(signals chan os.Signal, notifications chan Notification) {
 
 	buffSize := k.consumer.BatchSize
 	// Fan-out channel
-	consumerCh := make(chan *sarama.ConsumerMessage, buffSize*concurrency*10)
+	consumerCh := make(chan *sarama.ConsumerMessage, k.consumer.BufferSize)
 	// Update offset channel
 	offsetCh := make(chan *topicPartitionOffset)
 	for i := 0; i < concurrency; i++ {

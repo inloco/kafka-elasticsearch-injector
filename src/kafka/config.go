@@ -12,4 +12,5 @@ type Config struct {
 	BatchSize             string
 	MetricsUpdateInterval string
 	BufferWaitTime        string
+	BufferSize            string
 }

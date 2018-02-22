@@ -27,7 +27,7 @@ func NewConfig() Config {
 		Host:               os.Getenv("ELASTICSEARCH_HOST"),
 		Index:              os.Getenv("ES_INDEX"),
 		IndexColumn:        os.Getenv("ES_INDEX_COLUMN"),
-		BlacklistedColumns: strings.Split("ES_BLACKLISTED_COLUMNS", ","),
+		BlacklistedColumns: strings.Split(os.Getenv("ES_BLACKLISTED_COLUMNS"), ","),
 		BulkTimeout:        timeout,
 	}
 }

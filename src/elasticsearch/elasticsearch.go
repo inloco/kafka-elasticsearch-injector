@@ -66,12 +66,11 @@ func (d recordDatabase) Insert(records []*models.Record) error {
 			}
 			indexColumnValue = newIndexColumnValue
 		}
-		record.RemoveBlacklistedFields(d.config.BlacklistedColumns)
 		index := fmt.Sprintf("%s-%s", indexName, indexColumnValue)
 		bulkRequest.Add(elastic.NewBulkIndexRequest().Index(index).
 			Type(record.Topic).
 			Id(record.GetId()).
-			Doc(record.Json))
+			Doc(record.FilteredFieldsJSON(d.config.BlacklistedColumns)))
 	}
 	timeout := d.config.BulkTimeout
 	ctx, cancel := context.WithTimeout(context.Background(), timeout)

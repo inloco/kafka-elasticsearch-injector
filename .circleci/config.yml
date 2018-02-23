@@ -6,7 +6,7 @@ jobs:
       - PACKAGE_PATH: "bitbucket.org/ubeedev/kafka-elasticsearch-injector-go"
       - LOCAL_BIN_PATH: "~/bin:$PATH"
     docker:
-      - image: circleci/golang:1.9
+      - image: circleci/golang:1.10
         environment:
           DOCKER_REPO: inlocomedia/kafka-elasticsearch-injector-go
       - image: confluentinc/cp-zookeeper:3.1.1

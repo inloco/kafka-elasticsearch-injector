@@ -80,7 +80,6 @@ func TestMain(m *testing.M) {
 		Concurrency:           1,
 		BatchSize:             1,
 		MetricsUpdateInterval: 30 * time.Second,
-		BufferWaitTime:        1 * time.Second,
 	}
 	k = NewKafka("localhost:9092", consumer)
 	retCode := m.Run()

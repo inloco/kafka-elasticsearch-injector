@@ -38,7 +38,7 @@ type Consumer struct {
 	Concurrency           int
 	BatchSize             int
 	MetricsUpdateInterval time.Duration
-	BufferWaitTime        time.Duration
+	BufferSize            int
 }
 
 type topicPartitionOffset struct {
@@ -73,7 +73,7 @@ func (k *kafka) Start(signals chan os.Signal, notifications chan Notification) {
 
 	buffSize := k.consumer.BatchSize
 	// Fan-out channel
-	consumerCh := make(chan *sarama.ConsumerMessage, buffSize*concurrency*10)
+	consumerCh := make(chan *sarama.ConsumerMessage, k.consumer.BufferSize)
 	// Update offset channel
 	offsetCh := make(chan *topicPartitionOffset)
 	for i := 0; i < concurrency; i++ {
@@ -151,15 +151,16 @@ func (k *kafka) Start(signals chan os.Signal, notifications chan Notification) {
 	}()
 
 	// consume messages, watch errors and notifications
-	waitTime := k.consumer.BufferWaitTime
 	for {
-		if len(consumerCh) > cap(consumerCh) {
-			time.Sleep(waitTime) // channel is getting full, wait before pushing more messages
-			continue
-		}
 		select {
 		case msg, more := <-consumer.Messages():
 			if more {
+				if len(consumerCh) >= cap(consumerCh) {
+					level.Warn(k.consumer.Logger).Log(
+						"message", "Buffer is full ",
+						"channelSize", cap(consumerCh),
+					)
+				}
 				consumerCh <- msg
 			}
 		case err, more := <-consumer.Errors():

@@ -103,6 +103,7 @@ func (k *kafka) Start(signals chan os.Signal, notifications chan Notification) {
 						continue
 					}
 					notifications <- Inserted
+					incrementRecordsConsumed(buffSize)
 					for _, msg := range buf {
 						offsetCh <- &topicPartitionOffset{msg.Topic, msg.Partition, msg.Offset}
 						consumer.MarkOffset(msg, "") // mark message as processed

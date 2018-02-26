@@ -2,6 +2,8 @@ package kafka
 
 import (
 	"context"
+	"errors"
+	"reflect"
 
 	"bitbucket.org/ubeedev/kafka-elasticsearch-injector-go/src/models"
 	"bitbucket.org/ubeedev/kafka-elasticsearch-injector-go/src/schema_registry"
@@ -35,12 +37,24 @@ func (d *Decoder) KafkaMessageToRecord(context context.Context, msg *sarama.Cons
 		return nil, err
 	}
 
+	parsedNative := make(map[string]interface{})
+	nativeType := reflect.ValueOf(native)
+	if nativeType.Kind() != reflect.Map {
+		return nil, errors.New("could not unmarshall record JSON into map")
+	}
+	for _, key := range nativeType.MapKeys() {
+		if key.Kind() != reflect.String {
+			return nil, errors.New("could not unmarshall record JSON into map keyed by string")
+		}
+		parsedNative[key.String()] = nativeType.MapIndex(key).Interface()
+	}
+
 	return &models.Record{
 		Topic:     msg.Topic,
 		Partition: msg.Partition,
 		Offset:    msg.Offset,
 		Timestamp: msg.Timestamp,
-		Json:      native,
+		Json:      parsedNative,
 	}, nil
 }
 

@@ -42,6 +42,7 @@ func main() {
 		ConsumerGroup: os.Getenv("KAFKA_CONSUMER_GROUP"),
 		Concurrency:   os.Getenv("KAFKA_CONSUMER_CONCURRENCY"),
 		BatchSize:     os.Getenv("KAFKA_CONSUMER_BATCH_SIZE"),
+		BufferSize:    os.Getenv("KAFKA_CONSUMER_BUFFER_SIZE"),
 	}
 
 	service := injector.NewService(logger)

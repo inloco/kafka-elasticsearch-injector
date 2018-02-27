@@ -101,6 +101,10 @@ You can find more information here: [Indices Templates][indices_templates], [Map
 This project exports metrics such as consumer lag by default. We don't have a grafana template ready for consumers but you can use existing
 dashboards as inspiration for your application.
 
+The exported metrics are:
+- `kafka_consumer_partition_delay`: number of records betweeen last record consumed successfully and the last record on kafka, by partition and topic.
+- `kafka_consumer_records_consumed_successfully`: number of records consumed successfully by this instance.
+
 ## Development
 
 Clone the repo, install dep and retrieve dependencies:

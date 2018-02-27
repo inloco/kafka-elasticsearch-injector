@@ -79,7 +79,7 @@ func (d recordDatabase) Insert(records []*models.Record) error {
 	if err == nil {
 		if res.Errors {
 			for _, f := range res.Failed() {
-				return errors.New(fmt.Sprintf("%s", f.Error))
+				return errors.New(fmt.Sprintf("%v", f.Error))
 			}
 		}
 	}

@@ -26,7 +26,7 @@ the app name and the metadata related to it.
 - `KAFKA_CONSUMER_BATCH_SIZE` Number of records to accumulate before sending them to elasticsearch(for each goroutine). Default value is 100 **OPTIONAL**
 - `ES_INDEX_COLUMN` Record field to append to index name. Ex: to create one ES index per campaign, use "campaign_id" here **OPTIONAL**
 - `ES_BLACKLISTED_COLUMNS` Comma separated list of record fields to filter before sending to elasticsearch. Defaults to empty string. **OPTIONAL**
-- `LOG_LEVEL` Determines the log level for the app. Defaults to INFO. **OPTIONAL**
+- `LOG_LEVEL` Determines the log level for the app. Should be set to DEBUG, WARN, NONE or INFO. Defaults to INFO. **OPTIONAL**
 - `METRICS_PORT` Port to export app metrics **REQUIRED**
 - `ES_BULK_TIMEOUT` Timeout for elasticsearch bulk writes in the format of golang's `time.ParseDuration`. Default value is 1s **OPTIONAL**
 

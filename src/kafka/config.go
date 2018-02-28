@@ -14,10 +14,3 @@ type Config struct {
 	BufferSize            string
 	RecordType            string
 }
-
-type RecordType int
-
-const (
-	RecordTypeAvro = iota
-	RecordTypeJson
-)

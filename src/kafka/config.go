@@ -12,4 +12,12 @@ type Config struct {
 	BatchSize             string
 	MetricsUpdateInterval string
 	BufferSize            string
+	RecordType            string
 }
+
+type RecordType int
+
+const (
+	RecordTypeAvro = iota
+	RecordTypeJson
+)

@@ -11,6 +11,15 @@ import (
 	"github.com/go-kit/kit/log/level"
 )
 
+var recordTypes = map[string]func(d *kafka.Decoder) kafka.DecodeMessageFunc{
+	"avro": func(d *kafka.Decoder) kafka.DecodeMessageFunc {
+		return d.AvroMessageToRecord
+	},
+	"json": func(d *kafka.Decoder) kafka.DecodeMessageFunc {
+		return d.JsonMessageToRecord
+	},
+}
+
 func MakeKafkaConsumer(endpoints Endpoints, logger log.Logger, schemaRegistry *schema_registry.SchemaRegistry, kafkaConfig *kafka.Config) (kafka.Consumer, error) {
 	concurrency, err := strconv.Atoi(kafkaConfig.Concurrency)
 	if err != nil {
@@ -36,12 +45,16 @@ func MakeKafkaConsumer(endpoints Endpoints, logger log.Logger, schemaRegistry *s
 	deserializer := &kafka.Decoder{
 		SchemaRegistry: schemaRegistry,
 	}
+	decodeFunc := deserializer.AvroMessageToRecord
+	if fn, ok := recordTypes[kafkaConfig.RecordType]; ok {
+		decodeFunc = fn(deserializer)
+	}
 
 	return kafka.Consumer{
 		Topics:                kafkaConfig.Topics,
 		Group:                 kafkaConfig.ConsumerGroup,
 		Endpoint:              endpoints.Insert(),
-		Decoder:               deserializer.KafkaMessageToRecord,
+		Decoder:               decodeFunc,
 		Logger:                logger,
 		Concurrency:           concurrency,
 		BatchSize:             batchSize,

@@ -75,7 +75,7 @@ func TestMain(m *testing.M) {
 		Topics:                []string{fixtures.DefaultTopic},
 		Group:                 "my-consumer-group",
 		Endpoint:              endpoints.Insert(),
-		Decoder:               decoder.KafkaMessageToRecord,
+		Decoder:               decoder.AvroMessageToRecord,
 		Logger:                logger,
 		Concurrency:           1,
 		BatchSize:             1,

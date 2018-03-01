@@ -5,6 +5,8 @@ import (
 	"errors"
 	"reflect"
 
+	"encoding/json"
+
 	"bitbucket.org/ubeedev/kafka-elasticsearch-injector-go/src/models"
 	"bitbucket.org/ubeedev/kafka-elasticsearch-injector-go/src/schema_registry"
 	"github.com/Shopify/sarama"
@@ -21,7 +23,15 @@ type Decoder struct {
 	SchemaRegistry *schema_registry.SchemaRegistry
 }
 
-func (d *Decoder) KafkaMessageToRecord(context context.Context, msg *sarama.ConsumerMessage) (*models.Record, error) {
+func (d *Decoder) DeserializerFor(recordType string) DecodeMessageFunc {
+	if recordType == "json" {
+		return d.JsonMessageToRecord
+	} else {
+		return d.AvroMessageToRecord
+	}
+}
+
+func (d *Decoder) AvroMessageToRecord(context context.Context, msg *sarama.ConsumerMessage) (*models.Record, error) {
 	schemaId := getSchemaId(msg)
 	avroRecord := msg.Value[5:]
 	schema, err := d.SchemaRegistry.GetSchema(schemaId)
@@ -55,6 +65,22 @@ func (d *Decoder) KafkaMessageToRecord(context context.Context, msg *sarama.Cons
 		Offset:    msg.Offset,
 		Timestamp: msg.Timestamp,
 		Json:      parsedNative,
+	}, nil
+}
+
+func (d *Decoder) JsonMessageToRecord(context context.Context, msg *sarama.ConsumerMessage) (*models.Record, error) {
+	var jsonValue map[string]interface{}
+	err := json.Unmarshal(msg.Value, &jsonValue)
+	if err != nil {
+		return nil, err
+	}
+
+	return &models.Record{
+		Topic:     msg.Topic,
+		Partition: msg.Partition,
+		Offset:    msg.Offset,
+		Timestamp: msg.Timestamp,
+		Json:      jsonValue,
 	}, nil
 }
 

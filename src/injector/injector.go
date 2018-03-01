@@ -41,7 +41,7 @@ func MakeKafkaConsumer(endpoints Endpoints, logger log.Logger, schemaRegistry *s
 		Topics:                kafkaConfig.Topics,
 		Group:                 kafkaConfig.ConsumerGroup,
 		Endpoint:              endpoints.Insert(),
-		Decoder:               deserializer.KafkaMessageToRecord,
+		Decoder:               deserializer.DeserializerFor(kafkaConfig.RecordType),
 		Logger:                logger,
 		Concurrency:           concurrency,
 		BatchSize:             batchSize,

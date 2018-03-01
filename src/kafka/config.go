@@ -1,7 +1,7 @@
 package kafka
 
 const (
-	KafkaConsumer = "consumer"
+	ConsumerType = "consumer"
 )
 
 type Config struct {
@@ -12,4 +12,5 @@ type Config struct {
 	BatchSize             string
 	MetricsUpdateInterval string
 	BufferSize            string
+	RecordType            string
 }

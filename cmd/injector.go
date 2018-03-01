@@ -37,12 +37,14 @@ func main() {
 	}
 
 	kafkaConfig := &kafka.Config{
-		Type:          kafka.KafkaConsumer,
-		Topics:        strings.Split(os.Getenv("KAFKA_TOPICS"), ","),
-		ConsumerGroup: os.Getenv("KAFKA_CONSUMER_GROUP"),
-		Concurrency:   os.Getenv("KAFKA_CONSUMER_CONCURRENCY"),
-		BatchSize:     os.Getenv("KAFKA_CONSUMER_BATCH_SIZE"),
-		BufferSize:    os.Getenv("KAFKA_CONSUMER_BUFFER_SIZE"),
+		Type:                  kafka.ConsumerType,
+		Topics:                strings.Split(os.Getenv("KAFKA_TOPICS"), ","),
+		ConsumerGroup:         os.Getenv("KAFKA_CONSUMER_GROUP"),
+		Concurrency:           os.Getenv("KAFKA_CONSUMER_CONCURRENCY"),
+		BatchSize:             os.Getenv("KAFKA_CONSUMER_BATCH_SIZE"),
+		BufferSize:            os.Getenv("KAFKA_CONSUMER_BUFFER_SIZE"),
+		MetricsUpdateInterval: os.Getenv("KAFKA_CONSUMER_METRICS_UPDATE_INTERVAL"),
+		RecordType:            os.Getenv("KAFKA_CONSUMER_RECORD_TYPE"),
 	}
 
 	service := injector.NewService(logger)

@@ -3,6 +3,7 @@ package kafka
 import (
 	"context"
 	"encoding/json"
+	"sync"
 	"testing"
 	"time"
 
@@ -16,7 +17,7 @@ type dummy struct {
 }
 
 func TestDecoder_JsonMessageToRecord(t *testing.T) {
-	d := &Decoder{nil}
+	d := &Decoder{CodecCache: sync.Map{}}
 	val := dummy{"alo", 60}
 	jsonBytes, err := json.Marshal(val)
 	record, err := d.JsonMessageToRecord(context.Background(), &sarama.ConsumerMessage{

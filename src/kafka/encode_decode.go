@@ -23,6 +23,14 @@ type Decoder struct {
 	SchemaRegistry *schema_registry.SchemaRegistry
 }
 
+func (d *Decoder) DeserializerFor(recordType string) DecodeMessageFunc {
+	if recordType == "json" {
+		return d.JsonMessageToRecord
+	} else {
+		return d.AvroMessageToRecord
+	}
+}
+
 func (d *Decoder) AvroMessageToRecord(context context.Context, msg *sarama.ConsumerMessage) (*models.Record, error) {
 	schemaId := getSchemaId(msg)
 	avroRecord := msg.Value[5:]

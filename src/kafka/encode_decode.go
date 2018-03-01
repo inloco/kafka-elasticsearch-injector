@@ -7,6 +7,8 @@ import (
 
 	"encoding/json"
 
+	"sync"
+
 	"bitbucket.org/ubeedev/kafka-elasticsearch-injector-go/src/models"
 	"bitbucket.org/ubeedev/kafka-elasticsearch-injector-go/src/schema_registry"
 	"github.com/Shopify/sarama"
@@ -21,6 +23,7 @@ type DecodeMessageFunc func(context.Context, *sarama.ConsumerMessage) (record *m
 
 type Decoder struct {
 	SchemaRegistry *schema_registry.SchemaRegistry
+	CodecCache     sync.Map
 }
 
 func (d *Decoder) DeserializerFor(recordType string) DecodeMessageFunc {
@@ -38,10 +41,20 @@ func (d *Decoder) AvroMessageToRecord(context context.Context, msg *sarama.Consu
 	if err != nil {
 		return nil, err
 	}
-	codec, err := goavro.NewCodec(schema)
-	if err != nil {
-		return nil, err
+	var codec *goavro.Codec
+	if codecI, ok := d.CodecCache.Load(schemaId); ok {
+		codec, ok = codecI.(*goavro.Codec)
 	}
+
+	if codec == nil {
+		codec, err = goavro.NewCodec(schema)
+		if err != nil {
+			return nil, err
+		}
+
+		d.CodecCache.Store(schemaId, codec)
+	}
+
 	native, _, err := codec.NativeFromBinary(avroRecord)
 	if err != nil {
 		return nil, err

@@ -1,7 +1,7 @@
 package kafka
 
 const (
-	KafkaConsumer = "consumer"
+	ConsumerType = "consumer"
 )
 
 type Config struct {

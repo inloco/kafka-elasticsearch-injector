@@ -37,7 +37,7 @@ func main() {
 	}
 
 	kafkaConfig := &kafka.Config{
-		Type:                  kafka.KafkaConsumer,
+		Type:                  kafka.ConsumerType,
 		Topics:                strings.Split(os.Getenv("KAFKA_TOPICS"), ","),
 		ConsumerGroup:         os.Getenv("KAFKA_CONSUMER_GROUP"),
 		Concurrency:           os.Getenv("KAFKA_CONSUMER_CONCURRENCY"),

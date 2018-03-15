@@ -12,8 +12,9 @@ import (
 const DefaultTopic = "my-topic"
 
 type FixtureRecord struct {
-	Id    int32
-	Value int32
+	Id        int32
+	Value     int32
+	Timestamp int64 `json:"@timestamp"`
 }
 
 func (r *FixtureRecord) Topic() string {

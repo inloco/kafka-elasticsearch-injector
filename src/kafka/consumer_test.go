@@ -97,6 +97,7 @@ func TestKafka_Start(t *testing.T) {
 	config.Version = sarama.V0_10_0_0 // This version is the same as in production
 	<-notifications
 	producer, err := fixtures.NewProducer("localhost:9092", config, schemaRegistry)
+	expectedTimestamp := time.Now().UnixNano() / int64(time.Millisecond)
 	rec := fixtures.NewFixtureRecord()
 	var msg *sarama.ProducerMessage
 	if assert.NoError(t, err) {
@@ -120,7 +121,8 @@ func TestKafka_Start(t *testing.T) {
 			assert.True(t, res.Found)
 			err = json.Unmarshal(*res.Source, &r)
 			if assert.NoError(t, err) {
-				assert.Equal(t, rec, r)
+				assert.Equal(t, rec.Id, r.Id)
+				assert.InDelta(t, expectedTimestamp, r.Timestamp, 1000.0)
 			}
 		}
 		signals <- os.Interrupt

@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"reflect"
+	"time"
 
 	"encoding/json"
 
@@ -20,6 +21,8 @@ import (
 // One straightforward DecodeMessageFunc could be something that
 // Avro decodes the message body to the concrete response type.
 type DecodeMessageFunc func(context.Context, *sarama.ConsumerMessage) (record *models.Record, err error)
+
+const kafkaTimestampKey = "@timestamp"
 
 type Decoder struct {
 	SchemaRegistry *schema_registry.SchemaRegistry
@@ -72,6 +75,8 @@ func (d *Decoder) AvroMessageToRecord(context context.Context, msg *sarama.Consu
 		parsedNative[key.String()] = nativeType.MapIndex(key).Interface()
 	}
 
+	parsedNative[kafkaTimestampKey] = makeTimestamp(msg.Timestamp)
+
 	return &models.Record{
 		Topic:     msg.Topic,
 		Partition: msg.Partition,
@@ -81,9 +86,15 @@ func (d *Decoder) AvroMessageToRecord(context context.Context, msg *sarama.Consu
 	}, nil
 }
 
+func makeTimestamp(timestamp time.Time) int64 {
+	return timestamp.UnixNano() / int64(time.Millisecond)
+}
+
 func (d *Decoder) JsonMessageToRecord(context context.Context, msg *sarama.ConsumerMessage) (*models.Record, error) {
 	var jsonValue map[string]interface{}
 	err := json.Unmarshal(msg.Value, &jsonValue)
+	jsonValue[kafkaTimestampKey] = makeTimestamp(msg.Timestamp)
+
 	if err != nil {
 		return nil, err
 	}

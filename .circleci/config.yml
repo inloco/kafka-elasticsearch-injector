@@ -77,7 +77,7 @@ jobs:
           command: |
             count=0; \
               until nc -z localhost 9200 || ((count ++ >= 10)); \
-              do echo "Retrying: Verify if Cassandra is ready"; sleep 5; done
+              do echo "Retrying: Verify if Elasticsearch is ready"; sleep 5; done
       - run:
           name: "Run project tests (excluding vendor)"
           command: go test $(go list ./... | grep -v /vendor/)

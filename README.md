@@ -1,4 +1,5 @@
 # Kafka elasticsearch injector
+[![CircleCI](https://circleci.com/gh/inloco/kafka-elasticsearch-injector.svg?style=svg&circle-token=9b8a15af1d6bd1fde69dc0fbc37ff191f4c95473)](https://circleci.com/gh/inloco/kafka-elasticsearch-injector)
 
 Application responsible for loading kafka topics into elasticsearch. Some use cases
 

@@ -12,13 +12,13 @@ import (
 
 	"encoding/json"
 
+	"github.com/Shopify/sarama"
+	"github.com/go-kit/kit/endpoint"
 	"github.com/inloco/kafka-elasticsearch-injector/src/elasticsearch"
 	"github.com/inloco/kafka-elasticsearch-injector/src/kafka/fixtures"
 	"github.com/inloco/kafka-elasticsearch-injector/src/logger_builder"
 	"github.com/inloco/kafka-elasticsearch-injector/src/models"
 	"github.com/inloco/kafka-elasticsearch-injector/src/schema_registry"
-	"github.com/Shopify/sarama"
-	"github.com/go-kit/kit/endpoint"
 	"github.com/olivere/elastic"
 	"github.com/stretchr/testify/assert"
 )
@@ -102,7 +102,7 @@ func TestKafka_Start(t *testing.T) {
 	var msg *sarama.ProducerMessage
 	if assert.NoError(t, err) {
 
-		err = producer.Publish(&rec)
+		err = producer.Publish(rec)
 		if assert.NoError(t, err) {
 			msg = <-producer.GetSuccesses()
 		} else {

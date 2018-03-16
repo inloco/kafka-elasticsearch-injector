@@ -8,12 +8,12 @@ import (
 
 	"sync"
 
-	"github.com/inloco/kafka-elasticsearch-injector/src/models"
 	"github.com/Shopify/sarama"
 	"github.com/bsm/sarama-cluster"
 	"github.com/go-kit/kit/endpoint"
 	"github.com/go-kit/kit/log"
 	"github.com/go-kit/kit/log/level"
+	"github.com/inloco/kafka-elasticsearch-injector/src/models"
 )
 
 type Notification int32

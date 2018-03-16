@@ -5,8 +5,8 @@ import (
 
 	"math/rand"
 
-	"github.com/inloco/kafka-elasticsearch-injector/src/models"
 	"github.com/inloco/goavro"
+	"github.com/inloco/kafka-elasticsearch-injector/src/models"
 )
 
 const DefaultTopic = "my-topic"
@@ -33,8 +33,8 @@ func (r *FixtureRecord) ToAvroSerialization() ([]byte, error) {
 	return codec.BinaryFromNative(nil, map[string]interface{}{"id": r.Id})
 }
 
-func NewFixtureRecord() FixtureRecord {
-	return FixtureRecord{Id: rand.Int31()}
+func NewFixtureRecord() *FixtureRecord {
+	return &FixtureRecord{Id: rand.Int31()}
 }
 
 func NewRecord(ts time.Time) (*models.Record, int32, int32) {

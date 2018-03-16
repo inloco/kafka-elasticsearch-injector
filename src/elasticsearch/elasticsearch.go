@@ -5,7 +5,7 @@ import (
 
 	"fmt"
 
-	"bitbucket.org/ubeedev/kafka-elasticsearch-injector-go/src/models"
+	"github.com/inloco/kafka-elasticsearch-injector/src/models"
 	"github.com/go-kit/kit/log"
 	"github.com/go-kit/kit/log/level"
 	"github.com/olivere/elastic"

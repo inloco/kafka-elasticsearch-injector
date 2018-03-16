@@ -3,7 +3,7 @@ jobs:
   build:
     working_directory: /go/src
     environment:
-      - PACKAGE_PATH: "bitbucket.org/ubeedev/kafka-elasticsearch-injector-go"
+      - PACKAGE_PATH: "github.com/inloco/kafka-elasticsearch-injector"
       - LOCAL_BIN_PATH: "~/bin:$PATH"
     docker:
       - image: circleci/golang:1.10
@@ -30,12 +30,12 @@ jobs:
     steps:
       - checkout:
           path: $PACKAGE_PATH
-          pwd: /go/src/bitbucket.org/ubeedev/kafka-elasticsearch-injector-go
+          pwd: /go/src/github.com/inloco/kafka-elasticsearch-injector
       - run:
           name: Generate helper files
           command: |
             echo $(git rev-parse --short HEAD) > HEAD
-          pwd: /go/src/bitbucket.org/ubeedev/kafka-elasticsearch-injector-go
+          pwd: /go/src/github.com/inloco/kafka-elasticsearch-injector
       - setup_remote_docker:
           reusable: true
       - run:
@@ -44,32 +44,34 @@ jobs:
             docker info
             docker login --username $DOCKER_USER --password $DOCKER_PASSWORD
       - run:
-          name: "Make golang get play nice with bitbucket repositories"
+          name: "Make golang get play nice with repositories"
           command: |
             git config --global http.https://gopkg.in.followRedirects true
             git config --global url."git@bitbucket.org:".insteadOf "https://bitbucket.org/"
+            git config --global url."git@github.com:".insteadOf "https://github.com/"
             cat ~/.gitconfig
             ssh-keyscan bitbucket.org >> ~/.ssh/known_hosts
-          pwd: /go/src/bitbucket.org/ubeedev/kafka-elasticsearch-injector-go
+            ssh-keyscan github.com >> ~/.ssh/known_hosts
+          pwd: /go/src/github.com/inloco/kafka-elasticsearch-injector
       - run:
           name: "Install dep"
           command: go get -u github.com/golang/dep/...
-          pwd: /go/src/bitbucket.org/ubeedev/kafka-elasticsearch-injector-go
+          pwd: /go/src/github.com/inloco/kafka-elasticsearch-injector
       - restore_cache:
           keys:
-            - kafka-elasticsearch-injector-go-{{ .Branch }}-{{ checksum "/go/src/bitbucket.org/ubeedev/kafka-elasticsearch-injector-go/Gopkg.lock" }}
-            - kafka-elasticsearch-injector-go-develop-{{ checksum "/go/src/bitbucket.org/ubeedev/kafka-elasticsearch-injector-go/Gopkg.lock" }}
+            - kafka-elasticsearch-injector-go-{{ .Branch }}-{{ checksum "/go/src/github.com/inloco/kafka-elasticsearch-injector/Gopkg.lock" }}
+            - kafka-elasticsearch-injector-go-develop-{{ checksum "/go/src/github.com/inloco/kafka-elasticsearch-injector/Gopkg.lock" }}
       - run:
           name: "Install package deps"
           command: |
             if [ ! -d "vendor/" ]; then
               dep ensure -v
             fi
-          pwd: /go/src/bitbucket.org/ubeedev/kafka-elasticsearch-injector-go
+          pwd: /go/src/github.com/inloco/kafka-elasticsearch-injector
       - save_cache:
-          key: kafka-elasticsearch-injector-go-{{ .Branch }}-{{ checksum "/go/src/bitbucket.org/ubeedev/kafka-elasticsearch-injector-go/Gopkg.lock" }}
+          key: kafka-elasticsearch-injector-go-{{ .Branch }}-{{ checksum "/go/src/github.com/inloco/kafka-elasticsearch-injector/Gopkg.lock" }}
           paths:
-            - /go/src/bitbucket.org/ubeedev/kafka-elasticsearch-injector-go/vendor
+            - /go/src/github.com/inloco/kafka-elasticsearch-injector/vendor
       - run:
           name: "Make sure elasticsearch is up and running"
           command: |
@@ -79,16 +81,16 @@ jobs:
       - run:
           name: "Run project tests (excluding vendor)"
           command: go test $(go list ./... | grep -v /vendor/)
-          pwd: /go/src/bitbucket.org/ubeedev/kafka-elasticsearch-injector-go
+          pwd: /go/src/github.com/inloco/kafka-elasticsearch-injector
       - run:
           name: Build injector
           command: GOOS=linux GOARCH=386 go build -a --ldflags="-s" -o bin/injector cmd/injector.go
-          pwd: /go/src/bitbucket.org/ubeedev/kafka-elasticsearch-injector-go
+          pwd: /go/src/github.com/inloco/kafka-elasticsearch-injector
       - run:
           name: Build injector docker image
           command: |
             docker build --rm=false -t "${DOCKER_REPO}:ci" -f cmd/Dockerfile .
-          pwd: /go/src/bitbucket.org/ubeedev/kafka-elasticsearch-injector-go
+          pwd: /go/src/github.com/inloco/kafka-elasticsearch-injector
       - deploy:
           name: Push to Docker Hub
           command: |
@@ -107,4 +109,4 @@ jobs:
               docker tag "${DOCKER_REPO}:ci" "${DOCKER_REPO}:$(cat VERSION)-$(cat HEAD)"
               docker push "${DOCKER_REPO}:$(cat VERSION)-$(cat HEAD)"
             fi
-          pwd: /go/src/bitbucket.org/ubeedev/kafka-elasticsearch-injector-go
+          pwd: /go/src/github.com/inloco/kafka-elasticsearch-injector

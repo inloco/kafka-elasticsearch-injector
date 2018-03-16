@@ -1,8 +1,8 @@
 package injector
 
 import (
-	"bitbucket.org/ubeedev/kafka-elasticsearch-injector-go/src/injector/store"
-	"bitbucket.org/ubeedev/kafka-elasticsearch-injector-go/src/models"
+	"github.com/inloco/kafka-elasticsearch-injector/src/injector/store"
+	"github.com/inloco/kafka-elasticsearch-injector/src/models"
 	"github.com/go-kit/kit/log"
 )
 

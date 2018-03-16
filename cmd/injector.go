@@ -9,12 +9,12 @@ import (
 	"os/signal"
 	"syscall"
 
-	"bitbucket.org/ubeedev/kafka-elasticsearch-injector-go/src/injector"
-	"bitbucket.org/ubeedev/kafka-elasticsearch-injector-go/src/kafka"
-	"bitbucket.org/ubeedev/kafka-elasticsearch-injector-go/src/logger_builder"
-	"bitbucket.org/ubeedev/kafka-elasticsearch-injector-go/src/metrics_instrumenter"
-	"bitbucket.org/ubeedev/kafka-elasticsearch-injector-go/src/probes"
-	"bitbucket.org/ubeedev/kafka-elasticsearch-injector-go/src/schema_registry"
+	"github.com/inloco/kafka-elasticsearch-injector/src/injector"
+	"github.com/inloco/kafka-elasticsearch-injector/src/kafka"
+	"github.com/inloco/kafka-elasticsearch-injector/src/logger_builder"
+	"github.com/inloco/kafka-elasticsearch-injector/src/metrics_instrumenter"
+	"github.com/inloco/kafka-elasticsearch-injector/src/probes"
+	"github.com/inloco/kafka-elasticsearch-injector/src/schema_registry"
 	"github.com/go-kit/kit/log/level"
 )
 

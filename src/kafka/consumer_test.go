@@ -12,11 +12,11 @@ import (
 
 	"encoding/json"
 
-	"bitbucket.org/ubeedev/kafka-elasticsearch-injector-go/src/elasticsearch"
-	"bitbucket.org/ubeedev/kafka-elasticsearch-injector-go/src/kafka/fixtures"
-	"bitbucket.org/ubeedev/kafka-elasticsearch-injector-go/src/logger_builder"
-	"bitbucket.org/ubeedev/kafka-elasticsearch-injector-go/src/models"
-	"bitbucket.org/ubeedev/kafka-elasticsearch-injector-go/src/schema_registry"
+	"github.com/inloco/kafka-elasticsearch-injector/src/elasticsearch"
+	"github.com/inloco/kafka-elasticsearch-injector/src/kafka/fixtures"
+	"github.com/inloco/kafka-elasticsearch-injector/src/logger_builder"
+	"github.com/inloco/kafka-elasticsearch-injector/src/models"
+	"github.com/inloco/kafka-elasticsearch-injector/src/schema_registry"
 	"github.com/Shopify/sarama"
 	"github.com/go-kit/kit/endpoint"
 	"github.com/olivere/elastic"

@@ -12,9 +12,9 @@ import (
 
 	"encoding/json"
 
-	"bitbucket.org/ubeedev/kafka-elasticsearch-injector-go/src/kafka/fixtures"
-	"bitbucket.org/ubeedev/kafka-elasticsearch-injector-go/src/logger_builder"
-	"bitbucket.org/ubeedev/kafka-elasticsearch-injector-go/src/models"
+	"github.com/inloco/kafka-elasticsearch-injector/src/kafka/fixtures"
+	"github.com/inloco/kafka-elasticsearch-injector/src/logger_builder"
+	"github.com/inloco/kafka-elasticsearch-injector/src/models"
 	"github.com/olivere/elastic"
 	"github.com/stretchr/testify/assert"
 )

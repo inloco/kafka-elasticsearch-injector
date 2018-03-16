@@ -7,7 +7,7 @@ import (
 	"strings"
 	"sync"
 
-	"bitbucket.org/ubeedev/kafka-elasticsearch-injector-go/src/schema_registry"
+	"github.com/inloco/kafka-elasticsearch-injector/src/schema_registry"
 	"github.com/Shopify/sarama"
 )
 

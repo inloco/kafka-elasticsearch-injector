@@ -5,8 +5,8 @@ import (
 
 	"time"
 
-	"bitbucket.org/ubeedev/kafka-elasticsearch-injector-go/src/kafka"
-	"bitbucket.org/ubeedev/kafka-elasticsearch-injector-go/src/schema_registry"
+	"github.com/inloco/kafka-elasticsearch-injector/src/kafka"
+	"github.com/inloco/kafka-elasticsearch-injector/src/schema_registry"
 	"github.com/go-kit/kit/log"
 	"github.com/go-kit/kit/log/level"
 )

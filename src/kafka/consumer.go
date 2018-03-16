@@ -8,7 +8,7 @@ import (
 
 	"sync"
 
-	"bitbucket.org/ubeedev/kafka-elasticsearch-injector-go/src/models"
+	"github.com/inloco/kafka-elasticsearch-injector/src/models"
 	"github.com/Shopify/sarama"
 	"github.com/bsm/sarama-cluster"
 	"github.com/go-kit/kit/endpoint"

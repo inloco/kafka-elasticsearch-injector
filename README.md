@@ -1,7 +1,7 @@
 # Kafka elasticsearch injector
 [![CircleCI](https://circleci.com/gh/inloco/kafka-elasticsearch-injector.svg?style=svg&circle-token=9b8a15af1d6bd1fde69dc0fbc37ff191f4c95473)](https://circleci.com/gh/inloco/kafka-elasticsearch-injector)
 
-Application responsible for loading kafka topics into elasticsearch. Some use cases
+Application responsible for loading kafka topics into elasticsearch. Some use cases:
 
 - Using elasticsearch as a debugging tool to monitor data activity in kafka topics
 - Using elasticsearch + kibana as an analytics tool
@@ -9,9 +9,7 @@ Application responsible for loading kafka topics into elasticsearch. Some use ca
 
 ## Usage
 
-To create new injectors for your topics, you should create a new deployment with your
-configurations. You can use existing deployments in `deploy/` as a template. Just remember to change
-the app name and the metadata related to it.
+To create new injectors for your topics, you should create a new kubernetes deployment with your configurations.
 
 ### Configuration variables
 - `KAFKA_ADDRESS` Kafka url. **REQUIRED**

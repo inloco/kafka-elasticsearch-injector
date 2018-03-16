@@ -113,7 +113,7 @@ go get -u github.com/golang/dep/...
 dep ensure -v
 ```
 
-To run tests, run `docker-compose up -d` and run `make test`. 
+To run tests, run `docker-compose up -d zookeeper kafka schema-registry elasticsearch` and run `make test`. 
 
 ### Versioning
 

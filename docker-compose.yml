@@ -2,10 +2,12 @@ version: '2'
 services:
   zookeeper:
     image: 'confluentinc/cp-zookeeper:3.1.1'
+    container_name: zookeeper
     environment:
       - ZOOKEEPER_CLIENT_PORT=2181
   kafka:
     image: 'confluentinc/cp-kafka:3.1.1'
+    container_name: kafka
     environment:
       - KAFKA_ZOOKEEPER_CONNECT=zookeeper:2181
       - KAFKA_ADVERTISED_LISTENERS=PLAINTEXT://kafka:9092
@@ -15,6 +17,7 @@ services:
       - "9092:9092"
   schema-registry:
     image: 'confluentinc/cp-schema-registry:3.1.1'
+    container_name: schema-registry
     environment:
       - SCHEMA_REGISTRY_KAFKASTORE_CONNECTION_URL=zookeeper:2181
       - SCHEMA_REGISTRY_HOST_NAME=schema-registry
@@ -23,5 +26,46 @@ services:
       - "8081:8081"
   elasticsearch:
     image: 'elasticsearch:5-alpine'
+    container_name: elasticsearch
     ports:
       - '9200:9200'
+  kibana:
+    image: 'kibana:5'
+    container_name: kibana
+    depends_on:
+      - elasticsearch
+    environment:
+      - ELASTICSEARCH_URL=http://elasticsearch:9200
+      - SERVER_HOST=0.0.0.0
+    ports:
+      - "5601:5601"
+  app:
+    image: 'inlocomedia/kafka-elasticsearch-injector:local'
+    container_name: app
+    depends_on:
+      - kafka
+      - elasticsearch
+      - schema-registry
+    environment:
+      - KAFKA_ADDRESS=kafka:9092
+      - SCHEMA_REGISTRY_URL=http://schema-registry:8081
+      - KAFKA_TOPICS=my-topic
+      - KAFKA_CONSUMER_GROUP=my-topic-es-injector
+      - ELASTICSEARCH_HOST=http://elasticsearch:9200
+      - PROBES_PORT=5000
+      - K8S_LIVENESS_ROUTE=/liveness
+      - K8S_READINESS_ROUTE=/readiness
+      - KAFKA_CONSUMER_CONCURRENCY=10
+      - KAFKA_CONSUMER_BATCH_SIZE=10
+      - METRICS_PORT=9102
+      - LOG_LEVEL=DEBUG
+  producer:
+    image: 'inlocomedia/kafka-elasticsearch-injector:producer-local'
+    container_name: producer
+    depends_on:
+      - kafka
+      - schema-registry
+    environment:
+      - KAFKA_ADDRESS=kafka:9092
+      - SCHEMA_REGISTRY_URL=http://schema-registry:8081
+      - LOG_LEVEL=DEBUG

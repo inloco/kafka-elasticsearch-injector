@@ -59,6 +59,8 @@ services:
       - KAFKA_CONSUMER_BATCH_SIZE=10
       - METRICS_PORT=9102
       - LOG_LEVEL=DEBUG
+    ports:
+      - "9102:9102"
   producer:
     image: 'inlocomedia/kafka-elasticsearch-injector:producer-local'
     container_name: producer

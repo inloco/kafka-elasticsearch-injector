@@ -50,27 +50,9 @@ func (d recordDatabase) CloseClient() {
 }
 
 func (d recordDatabase) Insert(records []*models.Record) error {
-	bulkRequest := d.GetClient().Bulk()
-	for _, record := range records {
-		indexName := d.config.Index
-		if indexName == "" {
-			indexName = record.Topic
-		}
-		indexColumn := d.config.IndexColumn
-		indexColumnValue := record.FormatTimestamp()
-		if indexColumn != "" {
-			newIndexColumnValue, err := record.GetValueForField(indexColumn)
-			if err != nil {
-				level.Error(d.logger).Log("err", err, "message", "Could not get column value from record.")
-				return err
-			}
-			indexColumnValue = newIndexColumnValue
-		}
-		index := fmt.Sprintf("%s-%s", indexName, indexColumnValue)
-		bulkRequest.Add(elastic.NewBulkIndexRequest().Index(index).
-			Type(record.Topic).
-			Id(record.GetId()).
-			Doc(record.FilteredFieldsJSON(d.config.BlacklistedColumns)))
+	bulkRequest, err := d.buildBulkRequest(records)
+	if err != nil {
+		return err
 	}
 	timeout := d.config.BulkTimeout
 	ctx, cancel := context.WithTimeout(context.Background(), timeout)
@@ -95,6 +77,32 @@ func (d recordDatabase) ReadinessCheck() bool {
 	}
 	level.Info(d.logger).Log("message", fmt.Sprintf("connected to es version %s", info.Version.Number))
 	return true
+}
+
+func (d recordDatabase) buildBulkRequest(records []*models.Record) (*elastic.BulkService, error) {
+	bulkRequest := d.GetClient().Bulk()
+	for _, record := range records {
+		indexName := d.config.Index
+		if indexName == "" {
+			indexName = record.Topic
+		}
+		indexColumn := d.config.IndexColumn
+		indexColumnValue := record.FormatTimestamp()
+		if indexColumn != "" {
+			newIndexColumnValue, err := record.GetValueForField(indexColumn)
+			if err != nil {
+				level.Error(d.logger).Log("err", err, "message", "Could not get column value from record.")
+				return nil, err
+			}
+			indexColumnValue = newIndexColumnValue
+		}
+		index := fmt.Sprintf("%s-%s", indexName, indexColumnValue)
+		bulkRequest.Add(elastic.NewBulkIndexRequest().Index(index).
+			Type(record.Topic).
+			Id(record.GetId()).
+			Doc(record.FilteredFieldsJSON(d.config.BlacklistedColumns)))
+	}
+	return bulkRequest, nil
 }
 
 func NewDatabase(logger log.Logger, config Config) RecordDatabase {

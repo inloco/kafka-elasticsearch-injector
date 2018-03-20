@@ -86,16 +86,18 @@ func (k *kafka) Start(signals chan os.Signal, notifications chan Notification) {
 				buf[idx] = kafkaMsg
 				idx++
 				for idx == buffSize {
-					for _, msg := range buf {
-						req, err := k.consumer.Decoder(nil, msg)
-						if err != nil {
-							level.Error(k.consumer.Logger).Log(
-								"message", "Error decoding message",
-								"err", err.Error(),
-							)
-							continue
+					if decoded == nil {
+						for _, msg := range buf {
+							req, err := k.consumer.Decoder(nil, msg)
+							if err != nil {
+								level.Error(k.consumer.Logger).Log(
+									"message", "Error decoding message",
+									"err", err.Error(),
+								)
+								continue
+							}
+							decoded = append(decoded, req)
 						}
-						decoded = append(decoded, req)
 					}
 					if res, err := k.consumer.Endpoint(context.Background(), decoded); err != nil {
 						level.Error(k.consumer.Logger).Log("message", "error on endpoint call", "err", err.Error())

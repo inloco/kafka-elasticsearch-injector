@@ -61,11 +61,7 @@ func NewKafka(address string, consumer Consumer, metrics metrics.MetricsPublishe
 		brokers:          brokers,
 		config:           config,
 		consumer:         consumer,
-<<<<<<< HEAD
 		metricsPublisher: metrics,
-=======
-		metricsPublisher: metrics.NewMetricsPublisher(),
->>>>>>> refactor(consumer): separate metrics logic from consumer
 		consumerCh:       make(chan *sarama.ConsumerMessage, consumer.BufferSize),
 		offsetCh:         make(chan *topicPartitionOffset),
 	}

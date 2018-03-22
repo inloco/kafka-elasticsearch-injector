@@ -1,6 +1,7 @@
 package fixtures
 
 import (
+	"strconv"
 	"time"
 
 	"math/rand"
@@ -47,4 +48,14 @@ func NewRecord(ts time.Time) (*models.Record, int32, int32) {
 		Timestamp: ts,
 		Json:      map[string]interface{}{"id": id, "value": value},
 	}, id, value
+}
+
+func NewElasticRecord() (*models.ElasticRecord, int32) {
+	id := rand.Int31()
+	return &models.ElasticRecord{
+		Index: "dummy-index",
+		Type:  "dummy-type",
+		ID:    strconv.Itoa(int(id)),
+		Json:  map[string]interface{}{"id": id},
+	}, id
 }

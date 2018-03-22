@@ -122,7 +122,7 @@ func TestKafka_Start(t *testing.T) {
 			err = json.Unmarshal(*res.Source, &r)
 			if assert.NoError(t, err) {
 				assert.Equal(t, rec.Id, r.Id)
-				assert.InDelta(t, expectedTimestamp, r.Timestamp, 1000.0)
+				assert.InDelta(t, expectedTimestamp, r.Timestamp, 5000.0)
 			}
 		}
 		signals <- os.Interrupt

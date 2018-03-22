@@ -6,13 +6,12 @@ import (
 
 	"time"
 
-	"sync"
-
 	"github.com/Shopify/sarama"
 	"github.com/bsm/sarama-cluster"
 	"github.com/go-kit/kit/endpoint"
 	"github.com/go-kit/kit/log"
 	"github.com/go-kit/kit/log/level"
+	"github.com/inloco/kafka-elasticsearch-injector/src/metrics"
 	"github.com/inloco/kafka-elasticsearch-injector/src/models"
 )
 
@@ -24,9 +23,12 @@ const (
 )
 
 type kafka struct {
-	consumer Consumer
-	config   *cluster.Config
-	brokers  []string
+	consumer         Consumer
+	consumerCh       chan *sarama.ConsumerMessage
+	offsetCh         chan *topicPartitionOffset
+	config           *cluster.Config
+	brokers          []string
+	metricsPublisher metrics.MetricsPublisher
 }
 
 type Consumer struct {
@@ -56,13 +58,16 @@ func NewKafka(address string, consumer Consumer) kafka {
 	config.Version = sarama.V0_10_0_0
 
 	return kafka{
-		brokers:  brokers,
-		config:   config,
-		consumer: consumer,
+		brokers:          brokers,
+		config:           config,
+		consumer:         consumer,
+		metricsPublisher: metrics.NewMetricsPublisher(),
+		consumerCh:       make(chan *sarama.ConsumerMessage, consumer.BufferSize),
+		offsetCh:         make(chan *topicPartitionOffset),
 	}
 }
 
-func (k *kafka) Start(signals chan os.Signal, notifications chan Notification) {
+func (k *kafka) Start(signals chan os.Signal, notifications chan<- Notification) {
 	topics := k.consumer.Topics
 	concurrency := k.consumer.Concurrency
 	consumer, err := cluster.NewConsumer(k.brokers, k.consumer.Group, topics, k.config)
@@ -72,83 +77,19 @@ func (k *kafka) Start(signals chan os.Signal, notifications chan Notification) {
 	defer consumer.Close()
 
 	buffSize := k.consumer.BatchSize
-	// Fan-out channel
-	consumerCh := make(chan *sarama.ConsumerMessage, k.consumer.BufferSize)
-	// Update offset channel
-	offsetCh := make(chan *topicPartitionOffset)
 	for i := 0; i < concurrency; i++ {
-		go func() {
-			buf := make([]*sarama.ConsumerMessage, buffSize)
-			var decoded []*models.Record
-			idx := 0
-			for {
-				kafkaMsg := <-consumerCh
-				buf[idx] = kafkaMsg
-				idx++
-				for idx == buffSize {
-					if decoded == nil {
-						for _, msg := range buf {
-							req, err := k.consumer.Decoder(nil, msg)
-							if err != nil {
-								level.Error(k.consumer.Logger).Log(
-									"message", "Error decoding message",
-									"err", err.Error(),
-								)
-								continue
-							}
-							decoded = append(decoded, req)
-						}
-					}
-					if res, err := k.consumer.Endpoint(context.Background(), decoded); err != nil {
-						level.Error(k.consumer.Logger).Log("message", "error on endpoint call", "err", err.Error())
-						var _ = res // ignore res (for now)
-						continue
-					}
-					notifications <- Inserted
-					incrementRecordsConsumed(buffSize)
-					for _, msg := range buf {
-						offsetCh <- &topicPartitionOffset{msg.Topic, msg.Partition, msg.Offset}
-						consumer.MarkOffset(msg, "") // mark message as processed
-					}
-					decoded = nil
-					idx = 0
-				}
-			}
-		}()
+		go k.worker(consumer, buffSize, notifications)
 	}
-	lock := sync.RWMutex{}
-	topicPartitionToOffset := make(map[string]map[int32]int64)
 	go func() {
 		for {
-			offset := <-offsetCh
-			lock.Lock()
-			currentOffset, exists := topicPartitionToOffset[offset.topic][offset.partition]
-			if !exists || offset.offset > currentOffset {
-				_, exists := topicPartitionToOffset[offset.topic]
-				if !exists {
-					topicPartitionToOffset[offset.topic] = make(map[int32]int64)
-				}
-				topicPartitionToOffset[offset.topic][offset.partition] = offset.offset
-			}
-			lock.Unlock()
+			offset := <-k.offsetCh
+			k.metricsPublisher.UpdateOffset(offset.topic, offset.partition, offset.offset)
 		}
 	}()
 
 	go func() {
 		for range time.Tick(k.consumer.MetricsUpdateInterval) {
-			for topic, partitions := range consumer.HighWaterMarks() {
-				for partition, maxOffset := range partitions {
-					lock.RLock()
-					offset, ok := topicPartitionToOffset[topic][partition]
-					lock.RUnlock()
-					if ok {
-						delay := maxOffset - offset
-						level.Info(k.consumer.Logger).Log("message", "updating partition offset metric",
-							"partition", partition, "maxOffset", maxOffset, "current", offset, "delay", delay)
-						updateOffset(topic, partition, delay)
-					}
-				}
-			}
+			k.metricsPublisher.PublishOffsetMetrics(consumer.HighWaterMarks())
 		}
 	}()
 
@@ -157,13 +98,13 @@ func (k *kafka) Start(signals chan os.Signal, notifications chan Notification) {
 		select {
 		case msg, more := <-consumer.Messages():
 			if more {
-				if len(consumerCh) >= cap(consumerCh) {
+				if len(k.consumerCh) >= cap(k.consumerCh) {
 					level.Warn(k.consumer.Logger).Log(
 						"message", "Buffer is full ",
-						"channelSize", cap(consumerCh),
+						"channelSize", cap(k.consumerCh),
 					)
 				}
-				consumerCh <- msg
+				k.consumerCh <- msg
 			}
 		case err, more := <-consumer.Errors():
 			if more {
@@ -186,5 +127,43 @@ func (k *kafka) Start(signals chan os.Signal, notifications chan Notification) {
 			return
 		}
 	}
+}
 
+func (k *kafka) worker(consumer *cluster.Consumer, buffSize int, notifications chan<- Notification) {
+	buf := make([]*sarama.ConsumerMessage, buffSize)
+	var decoded []*models.Record
+	idx := 0
+	for {
+		kafkaMsg := <-k.consumerCh
+		buf[idx] = kafkaMsg
+		idx++
+		for idx == buffSize {
+			if decoded == nil {
+				for _, msg := range buf {
+					req, err := k.consumer.Decoder(nil, msg)
+					if err != nil {
+						level.Error(k.consumer.Logger).Log(
+							"message", "Error decoding message",
+							"err", err.Error(),
+						)
+						continue
+					}
+					decoded = append(decoded, req)
+				}
+			}
+			if res, err := k.consumer.Endpoint(context.Background(), decoded); err != nil {
+				level.Error(k.consumer.Logger).Log("message", "error on endpoint call", "err", err.Error())
+				var _ = res // ignore res (for now)
+				continue
+			}
+			notifications <- Inserted
+			k.metricsPublisher.IncrementRecordsConsumed(buffSize)
+			for _, msg := range buf {
+				k.offsetCh <- &topicPartitionOffset{msg.Topic, msg.Partition, msg.Offset}
+				consumer.MarkOffset(msg, "") // mark message as processed
+			}
+			decoded = nil
+			idx = 0
+		}
+	}
 }

@@ -9,13 +9,13 @@ import (
 	"os/signal"
 	"syscall"
 
+	"github.com/go-kit/kit/log/level"
 	"github.com/inloco/kafka-elasticsearch-injector/src/injector"
 	"github.com/inloco/kafka-elasticsearch-injector/src/kafka"
 	"github.com/inloco/kafka-elasticsearch-injector/src/logger_builder"
-	"github.com/inloco/kafka-elasticsearch-injector/src/metrics_instrumenter"
+	"github.com/inloco/kafka-elasticsearch-injector/src/metrics"
 	"github.com/inloco/kafka-elasticsearch-injector/src/probes"
 	"github.com/inloco/kafka-elasticsearch-injector/src/schema_registry"
-	"github.com/go-kit/kit/log/level"
 )
 
 func main() {
@@ -30,7 +30,7 @@ func main() {
 		"message", fmt.Sprintf("Initializing kubernetes probes at %s", probesPort),
 	)
 	go p.Serve()
-	metrics_instrumenter.Register()
+	metrics.Register()
 	schemaRegistry, err := schema_registry.NewSchemaRegistry(os.Getenv("SCHEMA_REGISTRY_URL"))
 	if err != nil {
 		level.Error(logger).Log("err", err, "message", "failed to create schema registry client")
@@ -64,8 +64,12 @@ func main() {
 	notifications := make(chan kafka.Notification, 10)
 	go func() {
 		for {
-			select {
-			case _ = <-notifications: //ignore notifications
+			ntf := <-notifications
+			switch ntf {
+			case kafka.Ready:
+				level.Info(logger).Log("message", "kafka consumer ready")
+			case kafka.Inserted:
+				level.Info(logger).Log("message", fmt.Sprintf("inserted records"))
 			}
 		}
 	}()

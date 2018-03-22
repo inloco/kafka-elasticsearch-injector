@@ -1,4 +1,4 @@
-package metrics_instrumenter
+package metrics
 
 import (
 	"net/http"

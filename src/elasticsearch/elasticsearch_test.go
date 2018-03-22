@@ -26,22 +26,7 @@ var config = Config{
 	BlacklistedColumns: []string{},
 	BulkTimeout:        10 * time.Second,
 }
-var configIndexColumnBlacklist = Config{
-	Host:               "http://localhost:9200",
-	Index:              "my-topic",
-	IndexColumn:        "id",
-	BlacklistedColumns: []string{"id"},
-	BulkTimeout:        10 * time.Second,
-}
-var configDocIDColumn = Config{
-	Host:        "http://localhost:9200",
-	Index:       "my-topic",
-	BulkTimeout: 10 * time.Second,
-	DocIDColumn: "id",
-}
 var db = NewDatabase(logger, config)
-var dbIndexColumnBlacklist = NewDatabase(logger, configIndexColumnBlacklist)
-var dbDocIDColumn = NewDatabase(logger, configDocIDColumn)
 var template = `
 {
 	"template": "my-topic-*",
@@ -75,12 +60,8 @@ var template = `
 
 func TestMain(m *testing.M) {
 	setupDB(db)
-	setupDB(dbIndexColumnBlacklist)
-	setupDB(dbDocIDColumn)
 	retCode := m.Run()
 	tearDownDB(db)
-	tearDownDB(dbIndexColumnBlacklist)
-	tearDownDB(dbDocIDColumn)
 	os.Exit(retCode)
 }
 

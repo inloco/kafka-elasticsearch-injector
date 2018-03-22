@@ -1,6 +1,7 @@
 package elasticsearch
 
 import (
+	"strconv"
 	"testing"
 
 	"os"
@@ -34,8 +35,15 @@ var configIndexColumnBlacklist = Config{
 	BlacklistedColumns: []string{"id"},
 	BulkTimeout:        10 * time.Second,
 }
+var configDocIDColumn = Config{
+	Host:        "http://localhost:9200",
+	Index:       "my-topic",
+	BulkTimeout: 10 * time.Second,
+	DocIDColumn: "id",
+}
 var db = NewDatabase(logger, config)
 var dbIndexColumnBlacklist = NewDatabase(logger, configIndexColumnBlacklist)
+var dbDocIDColumn = NewDatabase(logger, configDocIDColumn)
 var template = `
 {
 	"template": "my-topic-*",
@@ -70,9 +78,11 @@ var template = `
 func TestMain(m *testing.M) {
 	setupDB(db)
 	setupDB(dbIndexColumnBlacklist)
+	setupDB(dbDocIDColumn)
 	retCode := m.Run()
 	tearDownDB(db)
 	tearDownDB(dbIndexColumnBlacklist)
+	tearDownDB(dbDocIDColumn)
 	os.Exit(retCode)
 }
 
@@ -143,6 +153,27 @@ func TestRecordDatabase_Insert_IndexColumnBlacklist(t *testing.T) {
 		assert.Equal(t, value, recordFromES.Value)
 	}
 	dbIndexColumnBlacklist.GetClient().DeleteByQuery(index).Query(elastic.MatchAllQuery{}).Do(context.Background())
+}
+
+func TestRecordDatabase_Insert_DocIDColumn(t *testing.T) {
+	now := time.Now()
+	record, id, _ := fixtures.NewRecord(now)
+	index := fmt.Sprintf("%s-%s", config.Index, record.FormatTimestamp())
+	err := dbDocIDColumn.Insert([]*models.Record{record})
+	dbDocIDColumn.GetClient().Refresh("_all").Do(context.Background())
+	var recordFromES fixtures.FixtureRecord
+	if assert.NoError(t, err) {
+		count, err := dbDocIDColumn.GetClient().Count(index).Do(context.Background())
+		if assert.NoError(t, err) {
+			assert.Equal(t, int64(1), count)
+		}
+		res, err := dbDocIDColumn.GetClient().Get().Index(index).Type(record.Topic).Id(strconv.Itoa(int(id))).Do(context.Background())
+		if assert.NoError(t, err) {
+			json.Unmarshal(*res.Source, &recordFromES)
+		}
+		assert.Equal(t, recordFromES.Id, id)
+	}
+	dbDocIDColumn.GetClient().DeleteByQuery(index).Query(elastic.MatchAllQuery{}).Do(context.Background())
 }
 
 func setupDB(d RecordDatabase) {

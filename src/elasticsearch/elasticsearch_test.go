@@ -1,14 +1,12 @@
 package elasticsearch
 
 import (
-	"strconv"
 	"testing"
 
 	"os"
 
 	"context"
 
-	"fmt"
 	"time"
 
 	"encoding/json"
@@ -92,88 +90,41 @@ func TestRecordDatabase_ReadinessCheck(t *testing.T) {
 }
 
 func TestRecordDatabase_Insert(t *testing.T) {
-	now := time.Now()
-	record, id, _ := fixtures.NewRecord(now)
-	index := fmt.Sprintf("%s-%s", config.Index, record.FormatTimestamp())
-	err := db.Insert([]*models.Record{record})
+	record, id := fixtures.NewElasticRecord()
+	err := db.Insert([]*models.ElasticRecord{record})
 	db.GetClient().Refresh("_all").Do(context.Background())
 	var recordFromES fixtures.FixtureRecord
 	if assert.NoError(t, err) {
-		count, err := db.GetClient().Count(index).Do(context.Background())
+		count, err := db.GetClient().Count(record.Index).Do(context.Background())
 		if assert.NoError(t, err) {
 			assert.Equal(t, int64(1), count)
 		}
-		res, err := db.GetClient().Get().Index(index).Type(record.Topic).Id(record.GetId()).Do(context.Background())
+		res, err := db.GetClient().Get().Index(record.Index).Type(record.Type).Id(record.ID).Do(context.Background())
 		if assert.NoError(t, err) {
 			json.Unmarshal(*res.Source, &recordFromES)
 		}
 		assert.Equal(t, recordFromES.Id, id)
 	}
-	db.GetClient().DeleteByQuery(index).Query(elastic.MatchAllQuery{}).Do(context.Background())
+	db.GetClient().DeleteByQuery(record.Index).Query(elastic.MatchAllQuery{}).Do(context.Background())
 }
 
 func TestRecordDatabase_Insert_Multiple(t *testing.T) {
-	now := time.Now()
-	record, id, _ := fixtures.NewRecord(now)
-	index := fmt.Sprintf("%s-%s", config.Index, record.FormatTimestamp())
-	err := db.Insert([]*models.Record{record, record})
+	record, id := fixtures.NewElasticRecord()
+	err := db.Insert([]*models.ElasticRecord{record, record})
 	db.GetClient().Refresh("_all").Do(context.Background())
 	var recordFromES fixtures.FixtureRecord
 	if assert.NoError(t, err) {
-		count, err := db.GetClient().Count(index).Do(context.Background())
+		count, err := db.GetClient().Count(record.Index).Do(context.Background())
 		if assert.NoError(t, err) {
 			assert.Equal(t, int64(1), count)
 		}
-		res, err := db.GetClient().Get().Index(index).Type(record.Topic).Id(record.GetId()).Do(context.Background())
+		res, err := db.GetClient().Get().Index(record.Index).Type(record.Type).Id(record.ID).Do(context.Background())
 		if assert.NoError(t, err) {
 			json.Unmarshal(*res.Source, &recordFromES)
 		}
 		assert.Equal(t, recordFromES.Id, id)
 	}
-	db.GetClient().DeleteByQuery(index).Query(elastic.MatchAllQuery{}).Do(context.Background())
-}
-
-func TestRecordDatabase_Insert_IndexColumnBlacklist(t *testing.T) {
-	now := time.Now()
-	record, id, value := fixtures.NewRecord(now)
-	index := fmt.Sprintf("%s-%d", config.Index, id)
-	err := dbIndexColumnBlacklist.Insert([]*models.Record{record})
-	dbIndexColumnBlacklist.GetClient().Refresh("_all").Do(context.Background())
-	var recordFromES fixtures.FixtureRecord
-	if assert.NoError(t, err) {
-		count, err := dbIndexColumnBlacklist.GetClient().Count(index).Do(context.Background())
-		if assert.NoError(t, err) {
-			assert.Equal(t, int64(1), count)
-		}
-		res, err := dbIndexColumnBlacklist.GetClient().Get().Index(index).Type(record.Topic).Id(record.GetId()).Do(context.Background())
-		if assert.NoError(t, err) {
-			json.Unmarshal(*res.Source, &recordFromES)
-		}
-		assert.Empty(t, recordFromES.Id)
-		assert.Equal(t, value, recordFromES.Value)
-	}
-	dbIndexColumnBlacklist.GetClient().DeleteByQuery(index).Query(elastic.MatchAllQuery{}).Do(context.Background())
-}
-
-func TestRecordDatabase_Insert_DocIDColumn(t *testing.T) {
-	now := time.Now()
-	record, id, _ := fixtures.NewRecord(now)
-	index := fmt.Sprintf("%s-%s", config.Index, record.FormatTimestamp())
-	err := dbDocIDColumn.Insert([]*models.Record{record})
-	dbDocIDColumn.GetClient().Refresh("_all").Do(context.Background())
-	var recordFromES fixtures.FixtureRecord
-	if assert.NoError(t, err) {
-		count, err := dbDocIDColumn.GetClient().Count(index).Do(context.Background())
-		if assert.NoError(t, err) {
-			assert.Equal(t, int64(1), count)
-		}
-		res, err := dbDocIDColumn.GetClient().Get().Index(index).Type(record.Topic).Id(strconv.Itoa(int(id))).Do(context.Background())
-		if assert.NoError(t, err) {
-			json.Unmarshal(*res.Source, &recordFromES)
-		}
-		assert.Equal(t, recordFromES.Id, id)
-	}
-	dbDocIDColumn.GetClient().DeleteByQuery(index).Query(elastic.MatchAllQuery{}).Do(context.Background())
+	db.GetClient().DeleteByQuery(record.Index).Query(elastic.MatchAllQuery{}).Do(context.Background())
 }
 
 func setupDB(d RecordDatabase) {

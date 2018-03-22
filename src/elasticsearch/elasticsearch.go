@@ -21,7 +21,7 @@ type basicDatabase interface {
 
 type RecordDatabase interface {
 	basicDatabase
-	Insert(records []*models.Record) error
+	Insert(records []*models.ElasticRecord) error
 	ReadinessCheck() bool
 }
 
@@ -49,7 +49,7 @@ func (d recordDatabase) CloseClient() {
 	}
 }
 
-func (d recordDatabase) Insert(records []*models.Record) error {
+func (d recordDatabase) Insert(records []*models.ElasticRecord) error {
 	bulkRequest, err := d.buildBulkRequest(records)
 	if err != nil {
 		return err
@@ -79,60 +79,15 @@ func (d recordDatabase) ReadinessCheck() bool {
 	return true
 }
 
-func (d recordDatabase) buildBulkRequest(records []*models.Record) (*elastic.BulkService, error) {
+func (d recordDatabase) buildBulkRequest(records []*models.ElasticRecord) (*elastic.BulkService, error) {
 	bulkRequest := d.GetClient().Bulk()
 	for _, record := range records {
-		index, err := d.getDatabaseIndex(record)
-		if err != nil {
-			return nil, err
-		}
-
-		docID, err := d.getDatabaseDocID(record)
-		if err != nil {
-			return nil, err
-		}
-
-		bulkRequest.Add(elastic.NewBulkIndexRequest().Index(index).
-			Type(record.Topic).
-			Id(docID).
-			Doc(record.FilteredFieldsJSON(d.config.BlacklistedColumns)))
+		bulkRequest.Add(elastic.NewBulkIndexRequest().Index(record.Index).
+			Type(record.Type).
+			Id(record.ID).
+			Doc(record.Json))
 	}
 	return bulkRequest, nil
-}
-
-func (d recordDatabase) getDatabaseIndex(record *models.Record) (string, error) {
-	indexPrefix := d.config.Index
-	if indexPrefix == "" {
-		indexPrefix = record.Topic
-	}
-
-	indexColumn := d.config.IndexColumn
-	indexSuffix := record.FormatTimestamp()
-	if indexColumn != "" {
-		newIndexSuffix, err := record.GetValueForField(indexColumn)
-		if err != nil {
-			level.Error(d.logger).Log("err", err, "message", "Could not get column value from record.")
-			return "", err
-		}
-		indexSuffix = newIndexSuffix
-	}
-
-	return fmt.Sprintf("%s-%s", indexPrefix, indexSuffix), nil
-}
-
-func (d recordDatabase) getDatabaseDocID(record *models.Record) (string, error) {
-	docID := record.GetId()
-
-	docIDColumn := d.config.DocIDColumn
-	if docIDColumn != "" {
-		newDocID, err := record.GetValueForField(docIDColumn)
-		if err != nil {
-			level.Error(d.logger).Log("err", err, "message", "Could not get doc id value from record.")
-			return "", err
-		}
-		docID = newDocID
-	}
-	return docID, nil
 }
 
 func NewDatabase(logger log.Logger, config Config) RecordDatabase {

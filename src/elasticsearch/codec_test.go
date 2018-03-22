@@ -64,6 +64,17 @@ func TestCodec_EncodeElasticRecords_IndexColumn(t *testing.T) {
 	}
 }
 
+func TestCodec_EncodeElasticRecords_InexistentIndexColumn(t *testing.T) {
+	codec := &basicCodec{
+		config: Config{IndexColumn: "invalid"},
+		logger: codecLogger,
+	}
+	record, _, _ := fixtures.NewRecord(time.Now())
+
+	_, err := codec.EncodeElasticRecords([]*models.Record{record})
+	assert.Error(t, err)
+}
+
 func TestCodec_EncodeElasticRecords_DocIDColumn(t *testing.T) {
 	codec := &basicCodec{
 		config: Config{DocIDColumn: "id"},
@@ -76,4 +87,15 @@ func TestCodec_EncodeElasticRecords_DocIDColumn(t *testing.T) {
 		elasticRecord := elasticRecords[0]
 		assert.Equal(t, strconv.Itoa(int(id)), elasticRecord.ID)
 	}
+}
+
+func TestCodec_EncodeElasticRecords_InexistentDocIDColumn(t *testing.T) {
+	codec := &basicCodec{
+		config: Config{DocIDColumn: "invalid"},
+		logger: codecLogger,
+	}
+	record, _, _ := fixtures.NewRecord(time.Now())
+
+	_, err := codec.EncodeElasticRecords([]*models.Record{record})
+	assert.Error(t, err)
 }

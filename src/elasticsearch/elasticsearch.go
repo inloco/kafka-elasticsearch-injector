@@ -5,9 +5,9 @@ import (
 
 	"fmt"
 
-	"github.com/inloco/kafka-elasticsearch-injector/src/models"
 	"github.com/go-kit/kit/log"
 	"github.com/go-kit/kit/log/level"
+	"github.com/inloco/kafka-elasticsearch-injector/src/models"
 	"github.com/olivere/elastic"
 	"github.com/pkg/errors"
 )
@@ -82,27 +82,57 @@ func (d recordDatabase) ReadinessCheck() bool {
 func (d recordDatabase) buildBulkRequest(records []*models.Record) (*elastic.BulkService, error) {
 	bulkRequest := d.GetClient().Bulk()
 	for _, record := range records {
-		indexName := d.config.Index
-		if indexName == "" {
-			indexName = record.Topic
+		index, err := d.getDatabaseIndex(record)
+		if err != nil {
+			return nil, err
 		}
-		indexColumn := d.config.IndexColumn
-		indexColumnValue := record.FormatTimestamp()
-		if indexColumn != "" {
-			newIndexColumnValue, err := record.GetValueForField(indexColumn)
-			if err != nil {
-				level.Error(d.logger).Log("err", err, "message", "Could not get column value from record.")
-				return nil, err
-			}
-			indexColumnValue = newIndexColumnValue
+
+		docID, err := d.getDatabaseDocID(record)
+		if err != nil {
+			return nil, err
 		}
-		index := fmt.Sprintf("%s-%s", indexName, indexColumnValue)
+
 		bulkRequest.Add(elastic.NewBulkIndexRequest().Index(index).
 			Type(record.Topic).
-			Id(record.GetId()).
+			Id(docID).
 			Doc(record.FilteredFieldsJSON(d.config.BlacklistedColumns)))
 	}
 	return bulkRequest, nil
+}
+
+func (d recordDatabase) getDatabaseIndex(record *models.Record) (string, error) {
+	indexPrefix := d.config.Index
+	if indexPrefix == "" {
+		indexPrefix = record.Topic
+	}
+
+	indexColumn := d.config.IndexColumn
+	indexSuffix := record.FormatTimestamp()
+	if indexColumn != "" {
+		newIndexSuffix, err := record.GetValueForField(indexColumn)
+		if err != nil {
+			level.Error(d.logger).Log("err", err, "message", "Could not get column value from record.")
+			return "", err
+		}
+		indexSuffix = newIndexSuffix
+	}
+
+	return fmt.Sprintf("%s-%s", indexPrefix, indexSuffix), nil
+}
+
+func (d recordDatabase) getDatabaseDocID(record *models.Record) (string, error) {
+	docID := record.GetId()
+
+	docIDColumn := d.config.DocIDColumn
+	if docIDColumn != "" {
+		newDocID, err := record.GetValueForField(docIDColumn)
+		if err != nil {
+			level.Error(d.logger).Log("err", err, "message", "Could not get doc id value from record.")
+			return "", err
+		}
+		docID = newDocID
+	}
+	return docID, nil
 }
 
 func NewDatabase(logger log.Logger, config Config) RecordDatabase {

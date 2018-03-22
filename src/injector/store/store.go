@@ -1,9 +1,9 @@
 package store
 
 import (
+	"github.com/go-kit/kit/log"
 	"github.com/inloco/kafka-elasticsearch-injector/src/elasticsearch"
 	"github.com/inloco/kafka-elasticsearch-injector/src/models"
-	"github.com/go-kit/kit/log"
 )
 
 type Store interface {
@@ -12,11 +12,16 @@ type Store interface {
 }
 
 type basicStore struct {
-	db elasticsearch.RecordDatabase
+	db    elasticsearch.RecordDatabase
+	codec elasticsearch.Codec
 }
 
 func (s basicStore) Insert(records []*models.Record) error {
-	return s.db.Insert(records)
+	elasticRecords, err := s.codec.EncodeElasticRecords(records)
+	if err != nil {
+		return err
+	}
+	return s.db.Insert(elasticRecords)
 }
 
 func (s basicStore) ReadinessCheck() bool {
@@ -24,5 +29,9 @@ func (s basicStore) ReadinessCheck() bool {
 }
 
 func NewStore(logger log.Logger) Store {
-	return basicStore{elasticsearch.NewDatabase(logger, elasticsearch.NewConfig())}
+	config := elasticsearch.NewConfig()
+	return basicStore{
+		db:    elasticsearch.NewDatabase(logger, config),
+		codec: elasticsearch.NewCodec(logger, config),
+	}
 }

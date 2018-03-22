@@ -24,11 +24,16 @@ import (
 )
 
 type fixtureService struct {
-	db elasticsearch.RecordDatabase
+	db    elasticsearch.RecordDatabase
+	codec elasticsearch.Codec
 }
 
 func (s fixtureService) Insert(records []*models.Record) error {
-	return s.db.Insert(records)
+	elasticRecords, err := s.codec.EncodeElasticRecords(records)
+	if err != nil {
+		return err
+	}
+	return s.db.Insert(elasticRecords)
 }
 
 func (s fixtureService) ReadinessCheck() bool {
@@ -45,12 +50,14 @@ func (be *fixtureEndpoints) Insert() endpoint.Endpoint {
 
 var (
 	logger = logger_builder.NewLogger("consumer-test")
-	db     = elasticsearch.NewDatabase(logger, elasticsearch.Config{
+	config = elasticsearch.Config{
 		Host:        "http://localhost:9200",
 		Index:       fixtures.DefaultTopic,
 		BulkTimeout: 10 * time.Second,
-	})
-	service   = fixtureService{db}
+	}
+	db        = elasticsearch.NewDatabase(logger, config)
+	codec     = elasticsearch.NewCodec(logger, config)
+	service   = fixtureService{db, codec}
 	endpoints = &fixtureEndpoints{
 		func(ctx context.Context, request interface{}) (response interface{}, err error) {
 			records := request.([]*models.Record)

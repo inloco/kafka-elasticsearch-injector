@@ -5,9 +5,9 @@ import (
 
 	"fmt"
 
-	"github.com/inloco/kafka-elasticsearch-injector/src/models"
 	"github.com/go-kit/kit/log"
 	"github.com/go-kit/kit/log/level"
+	"github.com/inloco/kafka-elasticsearch-injector/src/models"
 	"github.com/olivere/elastic"
 	"github.com/pkg/errors"
 )
@@ -21,7 +21,7 @@ type basicDatabase interface {
 
 type RecordDatabase interface {
 	basicDatabase
-	Insert(records []*models.Record) error
+	Insert(records []*models.ElasticRecord) error
 	ReadinessCheck() bool
 }
 
@@ -49,7 +49,7 @@ func (d recordDatabase) CloseClient() {
 	}
 }
 
-func (d recordDatabase) Insert(records []*models.Record) error {
+func (d recordDatabase) Insert(records []*models.ElasticRecord) error {
 	bulkRequest, err := d.buildBulkRequest(records)
 	if err != nil {
 		return err
@@ -79,28 +79,13 @@ func (d recordDatabase) ReadinessCheck() bool {
 	return true
 }
 
-func (d recordDatabase) buildBulkRequest(records []*models.Record) (*elastic.BulkService, error) {
+func (d recordDatabase) buildBulkRequest(records []*models.ElasticRecord) (*elastic.BulkService, error) {
 	bulkRequest := d.GetClient().Bulk()
 	for _, record := range records {
-		indexName := d.config.Index
-		if indexName == "" {
-			indexName = record.Topic
-		}
-		indexColumn := d.config.IndexColumn
-		indexColumnValue := record.FormatTimestamp()
-		if indexColumn != "" {
-			newIndexColumnValue, err := record.GetValueForField(indexColumn)
-			if err != nil {
-				level.Error(d.logger).Log("err", err, "message", "Could not get column value from record.")
-				return nil, err
-			}
-			indexColumnValue = newIndexColumnValue
-		}
-		index := fmt.Sprintf("%s-%s", indexName, indexColumnValue)
-		bulkRequest.Add(elastic.NewBulkIndexRequest().Index(index).
-			Type(record.Topic).
-			Id(record.GetId()).
-			Doc(record.FilteredFieldsJSON(d.config.BlacklistedColumns)))
+		bulkRequest.Add(elastic.NewBulkIndexRequest().Index(record.Index).
+			Type(record.Type).
+			Id(record.ID).
+			Doc(record.Json))
 	}
 	return bulkRequest, nil
 }

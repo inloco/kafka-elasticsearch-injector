@@ -1,9 +1,10 @@
 package injector
 
 import (
+	"time"
+
 	"github.com/inloco/kafka-elasticsearch-injector/src/metrics"
 	"github.com/inloco/kafka-elasticsearch-injector/src/models"
-	"time"
 )
 
 type instrumentingMiddleware struct {

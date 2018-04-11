@@ -12,15 +12,20 @@ import (
 )
 
 type metrics struct {
-	logger                 log.Logger
-	partitionDelay         *kitprometheus.Gauge
-	recordsConsumed        *kitprometheus.Counter
-	lock                   sync.RWMutex
-	topicPartitionToOffset map[string]map[int32]int64
+	logger                   log.Logger
+	partitionDelay           *kitprometheus.Gauge
+	recordsConsumed          *kitprometheus.Counter
+	endpointLatencyHistogram *kitprometheus.Summary
+	lock                     sync.RWMutex
+	topicPartitionToOffset   map[string]map[int32]int64
 }
 
 func (m *metrics) IncrementRecordsConsumed(count int) {
 	m.recordsConsumed.Add(float64(count))
+}
+
+func (m *metrics) RecordEndpointLatency(latency float64) {
+	m.endpointLatencyHistogram.Observe(latency)
 }
 
 func (m *metrics) UpdateOffset(topic string, partition int32, offset int64) {
@@ -58,6 +63,7 @@ type MetricsPublisher interface {
 	PublishOffsetMetrics(highWaterMarks map[string]map[int32]int64)
 	UpdateOffset(topic string, partition int32, delay int64)
 	IncrementRecordsConsumed(count int)
+	RecordEndpointLatency(latency float64)
 }
 
 func NewMetricsPublisher() MetricsPublisher {
@@ -70,11 +76,16 @@ func NewMetricsPublisher() MetricsPublisher {
 		Name: "kafka_consumer_partition_delay",
 		Help: "Kafka consumer partition delay",
 	}, []string{"partition", "topic"})
+	endpointLatencySummary := kitprometheus.NewSummaryFrom(stdprometheus.SummaryOpts{
+		Name: "kafka_consumer_endpoint_latency_histogram_seconds",
+		Help: "Kafka consumer endpoint latency histogram in seconds",
+	}, []string{})
 	return &metrics{
-		logger:          logger,
-		partitionDelay:  partitionDelay,
-		recordsConsumed: recordsConsumed,
-		lock:            sync.RWMutex{},
+		logger:                   logger,
+		partitionDelay:           partitionDelay,
+		recordsConsumed:          recordsConsumed,
+		endpointLatencyHistogram: endpointLatencySummary,
+		lock: sync.RWMutex{},
 		topicPartitionToOffset: make(map[string]map[int32]int64),
 	}
 }

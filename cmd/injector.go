@@ -46,8 +46,8 @@ func main() {
 		MetricsUpdateInterval: os.Getenv("KAFKA_CONSUMER_METRICS_UPDATE_INTERVAL"),
 		RecordType:            os.Getenv("KAFKA_CONSUMER_RECORD_TYPE"),
 	}
-
-	service := injector.NewService(logger)
+	metricsPublisher := metrics.NewMetricsPublisher()
+	service := injector.NewService(logger, metricsPublisher)
 	p.SetReadinessCheck(service.ReadinessCheck)
 
 	endpoints := injector.MakeEndpoints(service)
@@ -57,7 +57,7 @@ func main() {
 		level.Error(logger).Log("err", err, "message", "error creating kafka consumer")
 		panic(err)
 	}
-	k := kafka.NewKafka(os.Getenv("KAFKA_ADDRESS"), consumer)
+	k := kafka.NewKafka(os.Getenv("KAFKA_ADDRESS"), consumer, metricsPublisher)
 
 	signals := make(chan os.Signal, 1)
 	signal.Notify(signals, syscall.SIGINT, syscall.SIGTERM)

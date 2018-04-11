@@ -1,9 +1,10 @@
 package injector
 
 import (
-	"github.com/inloco/kafka-elasticsearch-injector/src/injector/store"
-	"github.com/inloco/kafka-elasticsearch-injector/src/models"
 	"github.com/go-kit/kit/log"
+	"github.com/inloco/kafka-elasticsearch-injector/src/injector/store"
+	"github.com/inloco/kafka-elasticsearch-injector/src/metrics"
+	"github.com/inloco/kafka-elasticsearch-injector/src/models"
 )
 
 type Service interface {
@@ -23,8 +24,11 @@ func (s basicService) ReadinessCheck() bool {
 	return s.store.ReadinessCheck()
 }
 
-func NewService(logger log.Logger) Service {
-	return basicService{
-		store.NewStore(logger),
+func NewService(logger log.Logger, metrics metrics.MetricsPublisher) Service {
+	return instrumentingMiddleware{
+		metricsPublisher: metrics,
+		next: basicService{
+			store.NewStore(logger),
+		},
 	}
 }

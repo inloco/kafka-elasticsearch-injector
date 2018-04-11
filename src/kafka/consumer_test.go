@@ -17,6 +17,7 @@ import (
 	"github.com/inloco/kafka-elasticsearch-injector/src/elasticsearch"
 	"github.com/inloco/kafka-elasticsearch-injector/src/kafka/fixtures"
 	"github.com/inloco/kafka-elasticsearch-injector/src/logger_builder"
+	"github.com/inloco/kafka-elasticsearch-injector/src/metrics"
 	"github.com/inloco/kafka-elasticsearch-injector/src/models"
 	"github.com/inloco/kafka-elasticsearch-injector/src/schema_registry"
 	"github.com/olivere/elastic"
@@ -88,7 +89,7 @@ func TestMain(m *testing.M) {
 		BatchSize:             1,
 		MetricsUpdateInterval: 30 * time.Second,
 	}
-	k = NewKafka("localhost:9092", consumer)
+	k = NewKafka("localhost:9092", consumer, metrics.NewMetricsPublisher())
 	retCode := m.Run()
 	os.Exit(retCode)
 }

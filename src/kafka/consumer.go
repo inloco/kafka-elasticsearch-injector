@@ -49,7 +49,7 @@ type topicPartitionOffset struct {
 	offset    int64
 }
 
-func NewKafka(address string, consumer Consumer) kafka {
+func NewKafka(address string, consumer Consumer, metrics metrics.MetricsPublisher) kafka {
 	brokers := []string{address}
 	config := cluster.NewConfig()
 	config.Consumer.Return.Errors = true
@@ -61,7 +61,7 @@ func NewKafka(address string, consumer Consumer) kafka {
 		brokers:          brokers,
 		config:           config,
 		consumer:         consumer,
-		metricsPublisher: metrics.NewMetricsPublisher(),
+		metricsPublisher: metrics,
 		consumerCh:       make(chan *sarama.ConsumerMessage, consumer.BufferSize),
 		offsetCh:         make(chan *topicPartitionOffset),
 	}

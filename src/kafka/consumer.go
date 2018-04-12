@@ -103,8 +103,10 @@ func (k *kafka) Start(signals chan os.Signal, notifications chan<- Notification)
 						"message", "Buffer is full ",
 						"channelSize", cap(k.consumerCh),
 					)
+					k.metricsPublisher.BufferFull(true)
 				}
 				k.consumerCh <- msg
+				k.metricsPublisher.BufferFull(false)
 			}
 		case err, more := <-consumer.Errors():
 			if more {

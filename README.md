@@ -106,6 +106,7 @@ The exported metrics are:
 - `kafka_consumer_partition_delay`: number of records betweeen last record consumed successfully and the last record on kafka, by partition and topic.
 - `kafka_consumer_records_consumed_successfully`: number of records consumed successfully by this instance.
 - `kafka_consumer_endpoint_latency_histogram_seconds`: endpoint latency in seconds (insertion to elasticsearch).
+- `kafka_consumer_buffer_full`: indicates whether the app buffer is full(meaning that elasticsearch is not being able to keep up with the topic volume).
 
 ## Development
 

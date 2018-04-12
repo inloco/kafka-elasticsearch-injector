@@ -3,12 +3,13 @@ package metrics
 import (
 	"strconv"
 
+	"sync"
+
 	"github.com/go-kit/kit/log"
 	"github.com/go-kit/kit/log/level"
 	kitprometheus "github.com/go-kit/kit/metrics/prometheus"
 	"github.com/inloco/kafka-elasticsearch-injector/src/logger_builder"
 	stdprometheus "github.com/prometheus/client_golang/prometheus"
-	"sync"
 )
 
 type metrics struct {
@@ -16,6 +17,7 @@ type metrics struct {
 	partitionDelay           *kitprometheus.Gauge
 	recordsConsumed          *kitprometheus.Counter
 	endpointLatencyHistogram *kitprometheus.Summary
+	bufferFullGauge          *kitprometheus.Gauge
 	lock                     sync.RWMutex
 	topicPartitionToOffset   map[string]map[int32]int64
 }
@@ -59,11 +61,20 @@ func (m *metrics) PublishOffsetMetrics(highWaterMarks map[string]map[int32]int64
 	}
 }
 
+func (m *metrics) BufferFull(full bool) {
+	val := 0.0
+	if full {
+		val = 1.0
+	}
+	m.bufferFullGauge.Set(val)
+}
+
 type MetricsPublisher interface {
 	PublishOffsetMetrics(highWaterMarks map[string]map[int32]int64)
 	UpdateOffset(topic string, partition int32, delay int64)
 	IncrementRecordsConsumed(count int)
 	RecordEndpointLatency(latency float64)
+	BufferFull(full bool)
 }
 
 func NewMetricsPublisher() MetricsPublisher {
@@ -80,12 +91,17 @@ func NewMetricsPublisher() MetricsPublisher {
 		Name: "kafka_consumer_endpoint_latency_histogram_seconds",
 		Help: "Kafka consumer endpoint latency histogram in seconds",
 	}, []string{})
+	bufferFullGauge := kitprometheus.NewGaugeFrom(stdprometheus.GaugeOpts{
+		Name: "kafka_consumer_buffer_full",
+		Help: "Kafka consumer boolean indicating if app buffer is full",
+	}, []string{})
 	return &metrics{
 		logger:                   logger,
 		partitionDelay:           partitionDelay,
 		recordsConsumed:          recordsConsumed,
 		endpointLatencyHistogram: endpointLatencySummary,
-		lock: sync.RWMutex{},
+		bufferFullGauge:          bufferFullGauge,
+		lock:                     sync.RWMutex{},
 		topicPartitionToOffset: make(map[string]map[int32]int64),
 	}
 }

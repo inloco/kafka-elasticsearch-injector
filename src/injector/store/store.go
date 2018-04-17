@@ -1,6 +1,8 @@
 package store
 
 import (
+	"time"
+
 	"github.com/go-kit/kit/log"
 	"github.com/inloco/kafka-elasticsearch-injector/src/elasticsearch"
 	"github.com/inloco/kafka-elasticsearch-injector/src/models"
@@ -12,8 +14,9 @@ type Store interface {
 }
 
 type basicStore struct {
-	db    elasticsearch.RecordDatabase
-	codec elasticsearch.Codec
+	db      elasticsearch.RecordDatabase
+	codec   elasticsearch.Codec
+	backoff time.Duration
 }
 
 func (s basicStore) Insert(records []*models.Record) error {
@@ -21,7 +24,19 @@ func (s basicStore) Insert(records []*models.Record) error {
 	if err != nil {
 		return err
 	}
-	return s.db.Insert(elasticRecords)
+	for {
+		res, err := s.db.Insert(elasticRecords)
+		if err != nil {
+			return err
+		}
+		if len(res.Retry) == 0 {
+			break
+		}
+		//some records failed to index, backoff then retry
+		time.Sleep(s.backoff)
+		s.db.Insert(res.Retry)
+	}
+	return nil
 }
 
 func (s basicStore) ReadinessCheck() bool {
@@ -31,7 +46,8 @@ func (s basicStore) ReadinessCheck() bool {
 func NewStore(logger log.Logger) Store {
 	config := elasticsearch.NewConfig()
 	return basicStore{
-		db:    elasticsearch.NewDatabase(logger, config),
-		codec: elasticsearch.NewCodec(logger, config),
+		db:      elasticsearch.NewDatabase(logger, config),
+		codec:   elasticsearch.NewCodec(logger, config),
+		backoff: config.Backoff,
 	}
 }

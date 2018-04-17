@@ -34,7 +34,8 @@ func (s fixtureService) Insert(records []*models.Record) error {
 	if err != nil {
 		return err
 	}
-	return s.db.Insert(elasticRecords)
+	_, err = s.db.Insert(elasticRecords)
+	return err
 }
 
 func (s fixtureService) ReadinessCheck() bool {

@@ -88,7 +88,9 @@ func (d recordDatabase) Insert(records []*models.ElasticRecord) (*InsertResponse
 			}
 			overloaded := false
 			for _, f := range failed {
-				level.Error(d.logger).Log("record", f, "message", "failed to insert!")
+				if f.Status == http.StatusConflict {
+					continue
+				}
 				retry = append(retry, recordMap[f.Id])
 				if f.Status == http.StatusTooManyRequests {
 					//es is overloaded, backoff

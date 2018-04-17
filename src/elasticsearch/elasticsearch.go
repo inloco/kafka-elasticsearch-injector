@@ -86,13 +86,18 @@ func (d recordDatabase) Insert(records []*models.ElasticRecord) (*InsertResponse
 			for _, rec := range records {
 				recordMap[rec.ID] = rec
 			}
+			overloaded := false
 			for _, f := range failed {
+				level.Error(d.logger).Log("record", f, "message", "failed to insert!")
+				retry = append(retry, recordMap[f.Id])
 				if f.Status == http.StatusTooManyRequests {
 					//es is overloaded, backoff
-					retry = append(retry, recordMap[f.Id])
+					overloaded = true
 				}
 			}
-			level.Warn(d.logger).Log("message", "insert failed: elasticsearch is overloaded", "retry_count", len(retry))
+			if overloaded {
+				level.Warn(d.logger).Log("message", "insert failed: elasticsearch is overloaded", "retry_count", len(retry))
+			}
 		}
 		return &InsertResponse{alreadyExistsIds, retry}, nil
 	}

@@ -74,8 +74,10 @@ func (d recordDatabase) Insert(records []*models.ElasticRecord) (*InsertResponse
 		for _, c := range created {
 			if c.Status == http.StatusConflict {
 				alreadyExistsIds = append(alreadyExistsIds, c.Id)
-				level.Warn(d.logger).Log("message", "document already exists", "id", c.Id)
 			}
+		}
+		if len(alreadyExistsIds) > 0 {
+			level.Warn(d.logger).Log("message", "document already exists", "doc_count", len(alreadyExistsIds))
 		}
 		failed := res.Failed()
 		var retry []*models.ElasticRecord
@@ -87,10 +89,10 @@ func (d recordDatabase) Insert(records []*models.ElasticRecord) (*InsertResponse
 			for _, f := range failed {
 				if f.Status == http.StatusTooManyRequests {
 					//es is overloaded, backoff
-					level.Warn(d.logger).Log("message", "insert failed: elasticsearch is overloaded", "failed_id", f.Id)
 					retry = append(retry, recordMap[f.Id])
 				}
 			}
+			level.Warn(d.logger).Log("message", "insert failed: elasticsearch is overloaded", "retry_count", len(retry))
 		}
 		return &InsertResponse{alreadyExistsIds, retry}, nil
 	}

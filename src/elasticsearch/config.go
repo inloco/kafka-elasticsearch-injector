@@ -13,6 +13,7 @@ type Config struct {
 	DocIDColumn        string
 	BlacklistedColumns []string
 	BulkTimeout        time.Duration
+	Backoff            time.Duration
 }
 
 func NewConfig() Config {
@@ -24,6 +25,14 @@ func NewConfig() Config {
 			timeout = d
 		}
 	}
+	backoffStr, exists := os.LookupEnv("ES_BULK_BACKOFF")
+	backoff := 1 * time.Second
+	if exists {
+		d, err := time.ParseDuration(backoffStr)
+		if err == nil {
+			backoff = d
+		}
+	}
 	return Config{
 		Host:               os.Getenv("ELASTICSEARCH_HOST"),
 		Index:              os.Getenv("ES_INDEX"),
@@ -31,5 +40,6 @@ func NewConfig() Config {
 		DocIDColumn:        os.Getenv("ES_DOC_ID_COLUMN"),
 		BlacklistedColumns: strings.Split(os.Getenv("ES_BLACKLISTED_COLUMNS"), ","),
 		BulkTimeout:        timeout,
+		Backoff:            backoff,
 	}
 }

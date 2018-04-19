@@ -53,6 +53,7 @@ func (d recordDatabase) CloseClient() {
 type InsertResponse struct {
 	AlreadyExists []string
 	Retry         []*models.ElasticRecord
+	Overloaded    bool
 }
 
 func (d recordDatabase) Insert(records []*models.ElasticRecord) (*InsertResponse, error) {
@@ -81,12 +82,12 @@ func (d recordDatabase) Insert(records []*models.ElasticRecord) (*InsertResponse
 		}
 		failed := res.Failed()
 		var retry []*models.ElasticRecord
+		overloaded := false
 		if len(failed) > 0 {
 			recordMap := make(map[string]*models.ElasticRecord)
 			for _, rec := range records {
 				recordMap[rec.ID] = rec
 			}
-			overloaded := false
 			for _, f := range failed {
 				if f.Status == http.StatusConflict {
 					continue
@@ -101,10 +102,10 @@ func (d recordDatabase) Insert(records []*models.ElasticRecord) (*InsertResponse
 				level.Warn(d.logger).Log("message", "insert failed: elasticsearch is overloaded", "retry_count", len(retry))
 			}
 		}
-		return &InsertResponse{alreadyExistsIds, retry}, nil
+		return &InsertResponse{alreadyExistsIds, retry, overloaded}, nil
 	}
 
-	return &InsertResponse{[]string{}, []*models.ElasticRecord{}}, nil
+	return &InsertResponse{[]string{}, []*models.ElasticRecord{}, false}, nil
 }
 
 func (d recordDatabase) ReadinessCheck() bool {

@@ -32,8 +32,10 @@ func (s basicStore) Insert(records []*models.Record) error {
 		if len(res.Retry) == 0 {
 			break
 		}
-		//some records failed to index, backoff then retry
-		time.Sleep(s.backoff)
+		//some records failed to index, backoff(if overloaded) then retry
+		if res.Overloaded {
+			time.Sleep(s.backoff)
+		}
 		s.db.Insert(res.Retry)
 	}
 	return nil

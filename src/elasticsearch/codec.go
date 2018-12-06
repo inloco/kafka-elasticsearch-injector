@@ -52,7 +52,10 @@ func (c basicCodec) getDatabaseIndex(record *models.Record) (string, error) {
 	}
 
 	indexColumn := c.config.IndexColumn
-	indexSuffix := record.FormatTimestamp()
+	indexSuffix := record.FormatTimestampDay()
+	if c.config.TimeSuffix == TimeSuffixHour {
+		indexSuffix = record.FormatTimestampHour()
+	}
 	if indexColumn != "" {
 		newIndexSuffix, err := record.GetValueForField(indexColumn)
 		if err != nil {

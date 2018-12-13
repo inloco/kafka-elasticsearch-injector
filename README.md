@@ -30,6 +30,7 @@ To create new injectors for your topics, you should create a new kubernetes depl
 - `METRICS_PORT` Port to export app metrics **REQUIRED**
 - `ES_BULK_TIMEOUT` Timeout for elasticsearch bulk writes in the format of golang's `time.ParseDuration`. Default value is 1s **OPTIONAL**
 - `ES_BULK_BACKOFF` Constant backoff when elasticsearch is overloaded. in the format of golang's `time.ParseDuration`. Default value is 1s **OPTIONAL**
+- `ES_TIME_SUFFIX` Indicates what time unit to append to index names on elasticsearch. Supported values are `day` and `hour`. Default value is `day` **OPTIONAL**
 - `KAFKA_CONSUMER_RECORD_TYPE` Kafka record type. Should be set to "avro" or "json". Defaults to avro. **OPTIONAL**
 - `KAFKA_CONSUMER_METRICS_UPDATE_INTERVAL` The interval which the app updates the exported metrics in the format of golang's `time.ParseDuration`. Defaults to 30s. **OPTIONAL**
 

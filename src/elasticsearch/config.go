@@ -6,6 +6,13 @@ import (
 	"time"
 )
 
+type TimeIndexSuffix int
+
+const (
+	TimeSuffixDay  TimeIndexSuffix = 0
+	TimeSuffixHour TimeIndexSuffix = 1
+)
+
 type Config struct {
 	Host               string
 	Index              string
@@ -14,6 +21,7 @@ type Config struct {
 	BlacklistedColumns []string
 	BulkTimeout        time.Duration
 	Backoff            time.Duration
+	TimeSuffix         TimeIndexSuffix
 }
 
 func NewConfig() Config {
@@ -33,6 +41,13 @@ func NewConfig() Config {
 			backoff = d
 		}
 	}
+	timeSuffix := TimeSuffixDay
+	if suffix := os.Getenv("ES_TIME_SUFFIX"); suffix != "" {
+		switch suffix {
+		case "hour":
+			timeSuffix = TimeSuffixHour
+		}
+	}
 	return Config{
 		Host:               os.Getenv("ELASTICSEARCH_HOST"),
 		Index:              os.Getenv("ES_INDEX"),
@@ -41,5 +56,6 @@ func NewConfig() Config {
 		BlacklistedColumns: strings.Split(os.Getenv("ES_BLACKLISTED_COLUMNS"), ","),
 		BulkTimeout:        timeout,
 		Backoff:            backoff,
+		TimeSuffix:         timeSuffix,
 	}
 }

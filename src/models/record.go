@@ -15,8 +15,12 @@ type Record struct {
 	Json      map[string]interface{}
 }
 
-func (r *Record) FormatTimestamp() string {
+func (r *Record) FormatTimestampDay() string {
 	return r.Timestamp.Format("2006-01-02")
+}
+
+func (r *Record) FormatTimestampHour() string {
+	return r.Timestamp.Format("2006-01-02T15")
 }
 
 func (r *Record) GetId() string {

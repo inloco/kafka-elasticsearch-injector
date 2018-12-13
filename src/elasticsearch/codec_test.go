@@ -25,7 +25,27 @@ func TestCodec_EncodeElasticRecords(t *testing.T) {
 	elasticRecords, err := codec.EncodeElasticRecords([]*models.Record{record})
 	if assert.NoError(t, err) && assert.Len(t, elasticRecords, 1) {
 		elasticRecord := elasticRecords[0]
-		assert.Equal(t, fmt.Sprintf("%s-%s", record.Topic, record.FormatTimestamp()), elasticRecord.Index)
+		assert.Equal(t, fmt.Sprintf("%s-%s", record.Topic, record.FormatTimestampDay()), elasticRecord.Index)
+		assert.Equal(t, record.Topic, elasticRecord.Type)
+		assert.Equal(t, fmt.Sprintf("%d:%d", record.Partition, record.Offset), elasticRecord.ID)
+		assert.Equal(t, id, elasticRecord.Json["id"])
+		assert.Equal(t, value, elasticRecord.Json["value"])
+	}
+}
+
+func TestCodec_EncodeElasticRecordsHourSuffix(t *testing.T) {
+	codec := &basicCodec{
+		config: Config{
+			TimeSuffix: TimeSuffixHour,
+		},
+		logger: codecLogger,
+	}
+	record, id, value := fixtures.NewRecord(time.Now())
+
+	elasticRecords, err := codec.EncodeElasticRecords([]*models.Record{record})
+	if assert.NoError(t, err) && assert.Len(t, elasticRecords, 1) {
+		elasticRecord := elasticRecords[0]
+		assert.Equal(t, fmt.Sprintf("%s-%s", record.Topic, record.FormatTimestampHour()), elasticRecord.Index)
 		assert.Equal(t, record.Topic, elasticRecord.Type)
 		assert.Equal(t, fmt.Sprintf("%d:%d", record.Partition, record.Offset), elasticRecord.ID)
 		assert.Equal(t, id, elasticRecord.Json["id"])

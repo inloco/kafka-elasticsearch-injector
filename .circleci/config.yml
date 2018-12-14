@@ -55,7 +55,7 @@ jobs:
           pwd: /go/src/github.com/inloco/kafka-elasticsearch-injector
       - run:
           name: "Install dep"
-          command: go get -u github.com/golang/dep/...
+          command: curl https://raw.githubusercontent.com/golang/dep/v0.5.0/install.sh | sh
           pwd: /go/src/github.com/inloco/kafka-elasticsearch-injector
       - restore_cache:
           keys:

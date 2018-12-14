@@ -20,7 +20,7 @@ func (r *Record) FormatTimestampDay() string {
 }
 
 func (r *Record) FormatTimestampHour() string {
-	return r.Timestamp.Format("2006-01-02T15")
+	return r.Timestamp.Format("2006-01-02-15")
 }
 
 func (r *Record) GetId() string {

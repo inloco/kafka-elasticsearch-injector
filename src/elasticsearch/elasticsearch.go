@@ -67,7 +67,7 @@ func (d recordDatabase) Insert(records []*models.ElasticRecord) (*InsertResponse
 	defer cancel()
 	res, err := bulkRequest.Do(ctx)
 	if err == elastic.ErrNoClient || errors.Cause(err) == elastic.ErrNoClient {
-		level.Warn(d.logger).Log("message", "no elasticsearch node available", "err", err)
+		_ = level.Warn(d.logger).Log("message", "no elasticsearch node available", "err", err)
 		return &InsertResponse{AlreadyExists: nil, Retry: records, Backoff: true}, nil
 	}
 	if err != nil {

@@ -82,7 +82,7 @@ func TestRecordDatabase_Insert(t *testing.T) {
 		}
 		res, err := db.GetClient().Get().Index(record.Index).Type(record.Type).Id(record.ID).Do(context.Background())
 		if assert.NoError(t, err) {
-			json.Unmarshal(res.Source, &recordFromES)
+			_ = json.Unmarshal(res.Source, &recordFromES)
 		}
 		assert.Equal(t, recordFromES.Id, id)
 	}
@@ -104,7 +104,7 @@ func TestRecordDatabase_Insert_RepeatedId(t *testing.T) {
 		}
 		res, err := db.GetClient().Get().Index(record.Index).Type(record.Type).Id(record.ID).Do(context.Background())
 		if assert.NoError(t, err) {
-			json.Unmarshal(res.Source, &recordFromES)
+			_ = json.Unmarshal(res.Source, &recordFromES)
 		}
 		assert.Equal(t, recordFromES.Id, id)
 	}
@@ -123,7 +123,7 @@ func TestRecordDatabase_Insert_Multiple(t *testing.T) {
 		}
 		res, err := db.GetClient().Get().Index(record.Index).Type(record.Type).Id(record.ID).Do(context.Background())
 		if assert.NoError(t, err) {
-			json.Unmarshal(res.Source, &recordFromES)
+			_ = json.Unmarshal(res.Source, &recordFromES)
 		}
 		assert.Equal(t, recordFromES.Id, id)
 	}

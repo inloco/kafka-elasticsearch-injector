@@ -20,7 +20,7 @@ import (
 	"github.com/inloco/kafka-elasticsearch-injector/src/metrics"
 	"github.com/inloco/kafka-elasticsearch-injector/src/models"
 	"github.com/inloco/kafka-elasticsearch-injector/src/schema_registry"
-	"github.com/olivere/elastic"
+	"github.com/olivere/elastic/v7"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -123,12 +123,11 @@ func TestKafka_Start(t *testing.T) {
 	esId := fmt.Sprintf("%d:%d", msg.Partition, msg.Offset)
 	_, err = db.GetClient().Refresh(esIndex).Do(context.Background())
 	if assert.NoError(t, err) {
-		res, err := db.GetClient().Get().Index(esIndex).
-			Type(msg.Topic).Id(esId).Do(context.Background())
+		res, err := db.GetClient().Get().Index(esIndex).Id(esId).Do(context.Background())
 		var r fixtures.FixtureRecord
 		if assert.NoError(t, err) {
 			assert.True(t, res.Found)
-			err = json.Unmarshal(*res.Source, &r)
+			err = json.Unmarshal(res.Source, &r)
 			if assert.NoError(t, err) {
 				assert.Equal(t, rec.Id, r.Id)
 				assert.InDelta(t, expectedTimestamp, r.Timestamp, 5000.0)

@@ -11,7 +11,7 @@ import (
 	"github.com/go-kit/kit/log"
 	"github.com/go-kit/kit/log/level"
 	"github.com/inloco/kafka-elasticsearch-injector/src/models"
-	"github.com/olivere/elastic"
+	"github.com/olivere/elastic/v7"
 )
 
 var esClient *elastic.Client

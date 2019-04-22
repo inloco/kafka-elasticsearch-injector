@@ -36,7 +36,7 @@ func (c basicCodec) EncodeElasticRecords(records []*models.Record) ([]*models.El
 
 		elasticRecords[idx] = &models.ElasticRecord{
 			Index: index,
-			Type:  record.Topic,
+			Type:  "_doc",
 			ID:    docID,
 			Json:  record.FilteredFieldsJSON(c.config.BlacklistedColumns),
 		}

@@ -33,10 +33,10 @@ func (s basicStore) Insert(records []*models.Record) error {
 			break
 		}
 		//some records failed to index, backoff(if overloaded) then retry
-		if res.Overloaded {
+		if res.Backoff {
 			time.Sleep(s.backoff)
 		}
-		s.db.Insert(res.Retry)
+		elasticRecords = res.Retry
 	}
 	return nil
 }

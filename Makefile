@@ -15,5 +15,5 @@ docker/run:
 	count=0; \
           until curl localhost:9200 || ((count ++ >= 10)); \
           do echo "Retrying: Verify if Elasticsearch is ready"; sleep 5; done
-	curl -XPOST "localhost:9200/_template/my-topic" --data '{"template":"my-topic-*","settings":{"refresh_interval":"30s","number_of_replicas":0},"mappings":{"_default_":{"_all":{"enabled":"false"},"_source":{"enabled":"true"},"properties":{"@timestamp":{"format":"epoch_millis","ignore_malformed":true,"type":"date"}},"dynamic_templates":[{"strings":{"match_mapping_type":"string","mapping":{"type":"text","index":false}}}]}}}'
+	curl -XPOST -H "Content-Type: application/json" "localhost:9200/_template/my-topic" --data '{"template":"my-topic-*","settings":{"refresh_interval":"30s","number_of_replicas":0},"mappings":{"_source":{"enabled":"true"},"properties":{"@timestamp":{"format":"epoch_millis","ignore_malformed":true,"type":"date"}},"dynamic_templates":[{"strings":{"match_mapping_type":"string","mapping":{"type":"keyword","index":true}}}]}}'
 	docker-compose up -d producer app

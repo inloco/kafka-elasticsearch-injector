@@ -266,6 +266,7 @@
     "github.com/go-kit/kit/metrics/prometheus",
     "github.com/inloco/goavro",
     "github.com/olivere/elastic",
+    "github.com/pkg/errors",
     "github.com/prometheus/client_golang/prometheus",
     "github.com/prometheus/client_golang/prometheus/promhttp",
     "github.com/stretchr/testify/assert",

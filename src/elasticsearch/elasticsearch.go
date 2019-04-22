@@ -2,8 +2,9 @@ package elasticsearch
 
 import (
 	"context"
-
 	"fmt"
+
+	"github.com/pkg/errors"
 
 	"net/http"
 
@@ -53,7 +54,7 @@ func (d recordDatabase) CloseClient() {
 type InsertResponse struct {
 	AlreadyExists []string
 	Retry         []*models.ElasticRecord
-	Overloaded    bool
+	Backoff       bool
 }
 
 func (d recordDatabase) Insert(records []*models.ElasticRecord) (*InsertResponse, error) {
@@ -65,7 +66,10 @@ func (d recordDatabase) Insert(records []*models.ElasticRecord) (*InsertResponse
 	ctx, cancel := context.WithTimeout(context.Background(), timeout)
 	defer cancel()
 	res, err := bulkRequest.Do(ctx)
-
+	if err == elastic.ErrNoClient || errors.Cause(err) == elastic.ErrNoClient {
+		level.Warn(d.logger).Log("message", "no elasticsearch node available", "err", err)
+		return &InsertResponse{AlreadyExists: nil, Retry: records, Backoff: true}, nil
+	}
 	if err != nil {
 		return nil, err
 	}

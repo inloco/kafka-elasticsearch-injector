@@ -112,10 +112,10 @@ The exported metrics are:
 
 ## Development
 
-Clone the repo, install dep and retrieve dependencies:
+This repository uses Go modules for dependency management, make sure it is enabled.
+To build the project from source, run from project root:
 ```bash
-go get -u github.com/golang/dep/...
-dep ensure -v
+go build cmd/injector.go
 ```
 
 To run tests, run `docker-compose up -d zookeeper kafka schema-registry elasticsearch` and run `make test`. 

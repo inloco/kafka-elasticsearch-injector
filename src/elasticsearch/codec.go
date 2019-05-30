@@ -8,6 +8,8 @@ import (
 	"github.com/inloco/kafka-elasticsearch-injector/src/models"
 )
 
+const typeDoc = "_doc"
+
 type Codec interface {
 	EncodeElasticRecords(records []*models.Record) ([]*models.ElasticRecord, error)
 }
@@ -36,7 +38,7 @@ func (c basicCodec) EncodeElasticRecords(records []*models.Record) ([]*models.El
 
 		elasticRecords[idx] = &models.ElasticRecord{
 			Index: index,
-			Type:  record.Topic,
+			Type:  typeDoc,
 			ID:    docID,
 			Json:  record.FilteredFieldsJSON(c.config.BlacklistedColumns),
 		}

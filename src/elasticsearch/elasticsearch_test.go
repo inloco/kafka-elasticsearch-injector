@@ -16,7 +16,7 @@ import (
 	"github.com/inloco/kafka-elasticsearch-injector/src/kafka/fixtures"
 	"github.com/inloco/kafka-elasticsearch-injector/src/logger_builder"
 	"github.com/inloco/kafka-elasticsearch-injector/src/models"
-	"github.com/olivere/elastic"
+	"github.com/olivere/elastic/v7"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -34,7 +34,6 @@ var template = `
 	"template": "my-topic-*",
 	"settings": {},
 	"mappings": {
-	  "my-topic": {
 		"_source": {
 		  "enabled": "true"
 		},
@@ -51,10 +50,9 @@ var template = `
 		],
 		"properties": {
 		  "id": {
-		  	"type": "keyword"
+			"type": "keyword"
 		  }
 		}
-	  }
 	},
 	"aliases": {}
 }
@@ -84,7 +82,7 @@ func TestRecordDatabase_Insert(t *testing.T) {
 		}
 		res, err := db.GetClient().Get().Index(record.Index).Type(record.Type).Id(record.ID).Do(context.Background())
 		if assert.NoError(t, err) {
-			json.Unmarshal(*res.Source, &recordFromES)
+			_ = json.Unmarshal(res.Source, &recordFromES)
 		}
 		assert.Equal(t, recordFromES.Id, id)
 	}
@@ -106,7 +104,7 @@ func TestRecordDatabase_Insert_RepeatedId(t *testing.T) {
 		}
 		res, err := db.GetClient().Get().Index(record.Index).Type(record.Type).Id(record.ID).Do(context.Background())
 		if assert.NoError(t, err) {
-			json.Unmarshal(*res.Source, &recordFromES)
+			_ = json.Unmarshal(res.Source, &recordFromES)
 		}
 		assert.Equal(t, recordFromES.Id, id)
 	}
@@ -125,7 +123,7 @@ func TestRecordDatabase_Insert_Multiple(t *testing.T) {
 		}
 		res, err := db.GetClient().Get().Index(record.Index).Type(record.Type).Id(record.ID).Do(context.Background())
 		if assert.NoError(t, err) {
-			json.Unmarshal(*res.Source, &recordFromES)
+			_ = json.Unmarshal(res.Source, &recordFromES)
 		}
 		assert.Equal(t, recordFromES.Id, id)
 	}

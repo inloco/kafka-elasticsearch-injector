@@ -91,6 +91,8 @@ github.com/olivere/elastic v6.1.5+incompatible h1:T570UQADp2WZI2sUEOaIlk1WyRZMyp
 github.com/olivere/elastic v6.1.5+incompatible/go.mod h1:J+q1zQJTgAz9woqsbVRqGeB5G1iqDKVBWLNSYW8yfJ8=
 github.com/olivere/elastic/v7 v7.0.0 h1:iw29D/OSXdR2loC4qPNddvWjuQqN7Co/uALVD4Si+D4=
 github.com/olivere/elastic/v7 v7.0.0/go.mod h1:h2vSaBKzz7eL+VsYPtIOXOURZlXmp+yY5MgyIW3Y/M0=
+github.com/olivere/elastic/v7 v7.0.1 h1:nPwkahx1Js+pILviQ9Cjl2O4Otfx0LhElnd30rEaGVQ=
+github.com/olivere/elastic/v7 v7.0.1/go.mod h1:h2vSaBKzz7eL+VsYPtIOXOURZlXmp+yY5MgyIW3Y/M0=
 github.com/onsi/ginkgo v1.6.0/go.mod h1:lLunBs/Ym6LB5Z9jYTR76FiuTmxDTDusOGeTQH+WWjE=
 github.com/onsi/ginkgo v1.7.0/go.mod h1:lLunBs/Ym6LB5Z9jYTR76FiuTmxDTDusOGeTQH+WWjE=
 github.com/onsi/ginkgo v1.8.0 h1:VkHVNpR4iVnU8XQR6DBm8BqYjN7CRzw+xKUbVVbbW9w=

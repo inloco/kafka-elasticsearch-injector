@@ -34,7 +34,9 @@ type recordDatabase struct {
 
 func (d recordDatabase) GetClient() *elastic.Client {
 	if esClient == nil {
-		client, err := elastic.NewClient(elastic.SetURL(d.config.Host))
+		client, err := elastic.NewClient(
+			elastic.SetURL(d.config.Host),
+			elastic.SetBasicAuth(d.config.User, d.config.Pwd))
 		if err != nil {
 			level.Error(d.logger).Log("err", err, "message", "could not init elasticsearch client")
 			panic(err)

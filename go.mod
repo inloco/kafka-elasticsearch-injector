@@ -9,10 +9,10 @@ require (
 	github.com/datamountaineer/schema-registry v0.0.0-20170721142813-6240b64c5baa
 	github.com/go-kit/kit v0.8.0
 	github.com/inloco/goavro v0.0.0-20180215164239-eba86de05ad3
+	github.com/kr/pretty v0.1.0 // indirect
 	github.com/olivere/elastic/v7 v7.0.1
 	github.com/onsi/ginkgo v1.8.0 // indirect
 	github.com/onsi/gomega v1.5.0 // indirect
-	github.com/pierrec/xxHash v0.1.1 // indirect
 	github.com/pkg/errors v0.8.1
 	github.com/prometheus/client_golang v0.9.3-0.20190127221311-3c4408c8b829
 	github.com/stretchr/testify v1.2.2

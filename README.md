@@ -21,6 +21,8 @@ To create new injectors for your topics, you should create a new kubernetes depl
 - `PROBES_PORT` Kubernetes probes port. Set to any available port. **REQUIRED**
 - `K8S_LIVENESS_ROUTE` Kubernetes route for liveness check. **REQUIRED**
 - `K8S_READINESS_ROUTE`Kubernetes route for readiness check. **REQUIRED**
+- `ELASTICSEARCH_USER` Elasticsearch user. **OPTIONAL**
+- `ELASTICSEARCH_PASSWORD` Elasticsearch password. **OPTIONAL**
 - `KAFKA_CONSUMER_CONCURRENCY` Number of parallel goroutines working as a consumer. Default value is 1 **OPTIONAL**
 - `KAFKA_CONSUMER_BATCH_SIZE` Number of records to accumulate before sending them to elasticsearch(for each goroutine). Default value is 100 **OPTIONAL**
 - `ES_INDEX_COLUMN` Record field to append to index name. Ex: to create one ES index per campaign, use "campaign_id" here **OPTIONAL**

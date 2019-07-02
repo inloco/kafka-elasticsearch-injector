@@ -15,6 +15,8 @@ const (
 
 type Config struct {
 	Host               string
+	User               string
+	Pwd                string
 	Index              string
 	IndexColumn        string
 	DocIDColumn        string
@@ -50,6 +52,8 @@ func NewConfig() Config {
 	}
 	return Config{
 		Host:               os.Getenv("ELASTICSEARCH_HOST"),
+		User:               os.Getenv("ELASTICSEARCH_USER"),
+		Pwd:                os.Getenv("ELASTICSEARCH_PASSWORD"),
 		Index:              os.Getenv("ES_INDEX"),
 		IndexColumn:        os.Getenv("ES_INDEX_COLUMN"),
 		DocIDColumn:        os.Getenv("ES_DOC_ID_COLUMN"),

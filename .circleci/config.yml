@@ -1,12 +1,12 @@
-version: 2
+version: 2.1
+defaults: &defaults
+  environment:
+    DOCKER_REPO: inlocomedia/kafka-elasticsearch-injector-go
 jobs:
-  build:
-    environment:
-      - PACKAGE_PATH: "github.com/inloco/kafka-elasticsearch-injector"
+  test:
+    <<: *defaults
     docker:
       - image: circleci/golang:1.12
-        environment:
-          DOCKER_REPO: inlocomedia/kafka-elasticsearch-injector-go
       - image: confluentinc/cp-zookeeper:3.1.1
         environment:
           - ZOOKEEPER_CLIENT_PORT=2181
@@ -27,9 +27,6 @@ jobs:
           transport.host: 127.0.0.1
     steps:
       - checkout
-      - run:
-          name: Generate helper files
-          command: echo $(git rev-parse --short HEAD) > HEAD
       - setup_remote_docker:
           reusable: true
       - run:
@@ -47,34 +44,125 @@ jobs:
               until nc -z localhost 9200 || ((count ++ >= 10)); \
               do echo "Retrying: Verify if Elasticsearch is ready"; sleep 5; done
       - run:
-          name: "Run project tests (excluding vendor)"
-          command: go test $(go list ./... | grep -v /vendor/)
-      - run:
-          name: Build injector
-          command: GOOS=linux GOARCH=386 go build -a --ldflags="-s" -o bin/injector cmd/injector.go
-      - run:
-          name: Build injector docker image
-          command: |
-            docker build --rm=false -t "${DOCKER_REPO}:ci" -f cmd/Dockerfile .
+          name: "Run tests"
+          command: make test
       - save_cache:
           key: go-mod-v4-{{ checksum "go.sum" }}
           paths:
             - "/go/pkg/mod"
-      - deploy:
-          name: Push to Docker Hub
+  build-image:
+    <<: *defaults
+    docker:
+      - image: circleci/golang:1.12
+    steps:
+      - checkout
+      - setup_remote_docker:
+          reusable: true
+          docker_layer_caching: true
+      - run:
+          name: Make `golang get` play nice with bitbucket and github repositories
           command: |
-            if [ "${CIRCLE_BRANCH}" == "master" ]; then
-              docker tag "${DOCKER_REPO}:ci" "${DOCKER_REPO}:$(cat VERSION)"
-              docker push "${DOCKER_REPO}:$(cat VERSION)"
-              docker tag "${DOCKER_REPO}:ci" "${DOCKER_REPO}:master"
-              docker push "${DOCKER_REPO}:master"
-            elif [[ $(echo "${CIRCLE_BRANCH}"| grep -c -e "hotfix\/.*") -gt 0 ]]; then
-              docker tag "${DOCKER_REPO}:ci" "${DOCKER_REPO}:$(cat VERSION)-pre"
-              docker push "${DOCKER_REPO}:$(cat VERSION)-pre"
-            elif [[ $(echo "${CIRCLE_BRANCH}"| grep -c -e "release\/.*") -gt 0 ]]; then
-              docker tag "${DOCKER_REPO}:ci" "${DOCKER_REPO}:$(cat VERSION)-pre"
-              docker push "${DOCKER_REPO}:$(cat VERSION)-pre"
+            git config --global url."git@bitbucket.org:".insteadOf "https://bitbucket.org/"
+            git config --global url."git@github.com:".insteadOf "https://github.com/"
+            cat ~/.gitconfig
+            ssh-keyscan bitbucket.org >> ~/.ssh/known_hosts
+            ssh-keyscan github.com >> ~/.ssh/known_hosts
+      - restore_cache:
+          keys:
+            - go-mod-v4-{{ checksum "go.sum" }}
+      - run:
+          name: Compile binary
+          command: make compile-binary
+      - run:
+          name: Build docker images
+          command: |
+            docker build --rm=false -t "${DOCKER_REPO}:ci" -f cmd/Dockerfile .
+      - run:
+          name: Save docker images and version description files
+          command: |
+            mkdir -p /tmp/workspace
+            docker save -o /tmp/workspace/image.tar $DOCKER_REPO:ci
+            (git describe --abbrev=0 2>/dev/null | sed 's/[^0-9\\.]*//g' || echo -n "0.0.0") > /tmp/workspace/TAG
+            (git rev-parse --short HEAD) > /tmp/workspace/HEAD
+      - persist_to_workspace:
+          root: /tmp/workspace
+          paths:
+            - image.tar
+            - TAG
+            - HEAD
+
+  deploy-image:
+    <<: *defaults
+    docker:
+      - image: circleci/python:3.7
+    steps:
+      - setup_remote_docker:
+          reusable: true
+      - attach_workspace:
+          at: /tmp/workspace
+      - run:
+          name: Restore docker images from build
+          command: |
+            docker load -i /tmp/workspace/image.tar
+      - run:
+          name: "docker login"
+          command: docker login --username $DOCKER_USER --password $DOCKER_PASSWORD
+      - run:
+          name: Push images
+          command: |
+            export TAG=$(cat /tmp/workspace/TAG)
+            export HEAD=$(cat /tmp/workspace/HEAD)
+            export VERSION=$(echo -n "$TAG-$HEAD")
+
+            if [ -z $CIRCLE_TAG ]; then
+              docker tag $DOCKER_REPO:ci $DOCKER_REPO:$VERSION
+              docker push $DOCKER_REPO:$VERSION
+              echo "Pushed $DOCKER_REPO:$VERSION"
             else
-              docker tag "${DOCKER_REPO}:ci" "${DOCKER_REPO}:$(cat VERSION)-$(cat HEAD)"
-              docker push "${DOCKER_REPO}:$(cat VERSION)-$(cat HEAD)"
+              docker tag $DOCKER_REPO:ci $DOCKER_REPO:$TAG
+              docker push $DOCKER_REPO:$TAG
+              echo "Pushed $DOCKER_REPO:$TAG"
             fi
+workflows:
+  version: 2.1
+  test-and-deploy-image-for-commit:
+    jobs:
+      - test:
+        filters:
+          branches:
+            ignore: /master/
+      - build-image:
+        filters:
+          branches:
+            ignore: /master/
+      - deploy-image:
+          context: media
+          requires:
+            - build-image
+          filters:
+            branches:
+              ignore: /master/
+  test-and-deploy-image-for-tag:
+    jobs:
+      - test:
+          filters:
+            tags:
+              only: /.+/
+            branches:
+              ignore: /.*/
+      - build-image:
+          filters:
+            tags:
+              only: /.+/
+            branches:
+              ignore: /.*/
+      - deploy-image:
+          context: media
+          requires:
+            - test
+            - build-image
+          filters:
+            tags:
+              only: /.+/
+            branches:
+              ignore: /.*/

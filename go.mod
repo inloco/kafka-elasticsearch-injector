@@ -15,7 +15,7 @@ require (
 	github.com/onsi/gomega v1.5.0 // indirect
 	github.com/pkg/errors v0.8.1
 	github.com/prometheus/client_golang v0.9.3-0.20190127221311-3c4408c8b829
-	github.com/stretchr/testify v1.2.2
+	github.com/stretchr/testify v1.3.0
 	golang.org/x/sync v0.0.0-20190412183630-56d357773e84 // indirect
 	gopkg.in/linkedin/goavro.v1 v1.0.5 // indirect
 )

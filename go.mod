@@ -5,7 +5,7 @@ go 1.12
 require (
 	github.com/Shopify/sarama v1.23.0
 	github.com/VividCortex/gohistogram v1.0.0 // indirect
-	github.com/bsm/sarama-cluster v2.1.12+incompatible
+	github.com/bsm/sarama-cluster v2.1.15+incompatible
 	github.com/datamountaineer/schema-registry v0.0.0-20170721142813-6240b64c5baa
 	github.com/go-kit/kit v0.8.0
 	github.com/inloco/goavro v0.0.0-20180215164239-eba86de05ad3

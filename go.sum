@@ -20,6 +20,8 @@ github.com/beorn7/perks v0.0.0-20180321164747-3a771d992973 h1:xJ4a3vCFaGF/jqvzLM
 github.com/beorn7/perks v0.0.0-20180321164747-3a771d992973/go.mod h1:Dwedo/Wpr24TaqPxmxbtue+5NUziq4I4S80YR8gNf3Q=
 github.com/bsm/sarama-cluster v2.1.12+incompatible h1:7NakmL2HnNvCCy685HlJbhYDU390nanFpwoonmhDJlw=
 github.com/bsm/sarama-cluster v2.1.12+incompatible/go.mod h1:r7ao+4tTNXvWm+VRpRJchr2kQhqxgmAp2iEX5W96gMM=
+github.com/bsm/sarama-cluster v2.1.15+incompatible h1:RkV6WiNRnqEEbp81druK8zYhmnIgdOjqSVi0+9Cnl2A=
+github.com/bsm/sarama-cluster v2.1.15+incompatible/go.mod h1:r7ao+4tTNXvWm+VRpRJchr2kQhqxgmAp2iEX5W96gMM=
 github.com/client9/misspell v0.3.4/go.mod h1:qj6jICC3Q7zFZvVWo7KLAzC3yx5G7kyvSDkc90ppPyw=
 github.com/datamountaineer/schema-registry v0.0.0-20170721142813-6240b64c5baa h1:RdJBGYg+y10xkrTYMAMKCm4/GaTIp0DHqauvyY/8b8Y=
 github.com/datamountaineer/schema-registry v0.0.0-20170721142813-6240b64c5baa/go.mod h1:S2tyO7aOaun9e+PdeX1Rp938aIJjV2FTn/P7mK3Ud3o=

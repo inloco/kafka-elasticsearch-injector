@@ -1,11 +1,10 @@
-go/deps:
-	dep ensure -v
-
 test:
 	go test $$(go list ./... | grep -v /vendor/)
 
-docker/build:
+compile-binary:
 	GOOS=linux GOARCH=386 go build -o bin/injector cmd/injector.go
+
+docker/build: compile-binary
 	GOOS=linux GOARCH=386 go build -o bin/producer util/producer/producer.go
 	docker build --rm=false -t "inlocomedia/kafka-elasticsearch-injector:local" -f cmd/Dockerfile .
 	docker build --rm=false -t "inlocomedia/kafka-elasticsearch-injector:producer-local" -f util/producer/Dockerfile .

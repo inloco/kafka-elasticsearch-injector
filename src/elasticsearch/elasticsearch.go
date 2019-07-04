@@ -43,7 +43,7 @@ func (d recordDatabase) GetClient() *elastic.Client {
 			opts = append(opts, elastic.SetHttpClient(&http.Client{Transport: insecureTr}))
 		}
 		if d.config.Scheme == "https" { // http is default
-			elastic.SetScheme(d.config.Scheme)
+			opts = append(opts, elastic.SetScheme(d.config.Scheme))
 		}
 		client, err := elastic.NewClient(opts...)
 		if err != nil {

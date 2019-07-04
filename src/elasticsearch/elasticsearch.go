@@ -35,17 +35,14 @@ type recordDatabase struct {
 
 func (d recordDatabase) GetClient() *elastic.Client {
 	if esClient == nil {
-		var httpClient *http.Client
-		if d.config.IgnoreCertificate {
-			tr := &http.Transport{
-				TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
-			}
-			httpClient = &http.Client{Transport: tr}
+		insecureTr := &http.Transport{
+			TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
 		}
-		client, err := elastic.NewClient(
-			elastic.SetURL(d.config.Host),
-			elastic.SetBasicAuth(d.config.User, d.config.Pwd),
-			elastic.SetHttpClient(httpClient))
+		opts := []elastic.ClientOptionFunc{elastic.SetURL(d.config.Host), elastic.SetBasicAuth(d.config.User, d.config.Pwd)}
+		if d.config.IgnoreCertificate {
+			opts = append(opts, elastic.SetHttpClient(&http.Client{Transport: insecureTr}))
+		}
+		client, err := elastic.NewClient(opts...)
 		if err != nil {
 			level.Error(d.logger).Log("err", err, "message", "could not init elasticsearch client")
 			panic(err)

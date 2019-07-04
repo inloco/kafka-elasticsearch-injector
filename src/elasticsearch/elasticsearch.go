@@ -2,6 +2,7 @@ package elasticsearch
 
 import (
 	"context"
+	"crypto/tls"
 	"fmt"
 
 	"github.com/pkg/errors"
@@ -34,9 +35,17 @@ type recordDatabase struct {
 
 func (d recordDatabase) GetClient() *elastic.Client {
 	if esClient == nil {
+		var httpClient *http.Client
+		if d.config.IgnoreCertificate {
+			tr := &http.Transport{
+				TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
+			}
+			httpClient = &http.Client{Transport: tr}
+		}
 		client, err := elastic.NewClient(
 			elastic.SetURL(d.config.Host),
-			elastic.SetBasicAuth(d.config.User, d.config.Pwd))
+			elastic.SetBasicAuth(d.config.User, d.config.Pwd),
+			elastic.SetHttpClient(httpClient))
 		if err != nil {
 			level.Error(d.logger).Log("err", err, "message", "could not init elasticsearch client")
 			panic(err)

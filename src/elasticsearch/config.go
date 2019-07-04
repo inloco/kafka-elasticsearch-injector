@@ -2,6 +2,7 @@ package elasticsearch
 
 import (
 	"os"
+	"strconv"
 	"strings"
 	"time"
 )
@@ -17,6 +18,7 @@ type Config struct {
 	Host               string
 	User               string
 	Pwd                string
+	IgnoreCertificate  bool
 	Index              string
 	IndexColumn        string
 	DocIDColumn        string
@@ -50,10 +52,18 @@ func NewConfig() Config {
 			timeSuffix = TimeSuffixHour
 		}
 	}
+	ignoreCert := false
+	if c := os.Getenv("ELASTICSEARCH_IGNORE_CERT"); c != "" {
+		res, err := strconv.ParseBool(c)
+		if err == nil {
+			ignoreCert = res
+		}
+	}
 	return Config{
 		Host:               os.Getenv("ELASTICSEARCH_HOST"),
 		User:               os.Getenv("ELASTICSEARCH_USER"),
 		Pwd:                os.Getenv("ELASTICSEARCH_PASSWORD"),
+		IgnoreCertificate:  ignoreCert,
 		Index:              os.Getenv("ES_INDEX"),
 		IndexColumn:        os.Getenv("ES_INDEX_COLUMN"),
 		DocIDColumn:        os.Getenv("ES_DOC_ID_COLUMN"),

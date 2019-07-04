@@ -19,6 +19,7 @@ type Config struct {
 	User               string
 	Pwd                string
 	IgnoreCertificate  bool
+	Scheme             string
 	Index              string
 	IndexColumn        string
 	DocIDColumn        string
@@ -59,11 +60,20 @@ func NewConfig() Config {
 			ignoreCert = res
 		}
 	}
+
+	scheme := "http"
+	if c := os.Getenv("ELASTICSEARCH_SCHEME"); c != "" {
+		switch c {
+		case "https":
+			scheme = c
+		}
+	}
 	return Config{
 		Host:               os.Getenv("ELASTICSEARCH_HOST"),
 		User:               os.Getenv("ELASTICSEARCH_USER"),
 		Pwd:                os.Getenv("ELASTICSEARCH_PASSWORD"),
 		IgnoreCertificate:  ignoreCert,
+		Scheme:             scheme,
 		Index:              os.Getenv("ES_INDEX"),
 		IndexColumn:        os.Getenv("ES_INDEX_COLUMN"),
 		DocIDColumn:        os.Getenv("ES_DOC_ID_COLUMN"),

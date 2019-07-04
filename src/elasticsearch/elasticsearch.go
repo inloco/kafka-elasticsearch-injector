@@ -40,7 +40,10 @@ func (d recordDatabase) GetClient() *elastic.Client {
 		}
 		opts := []elastic.ClientOptionFunc{elastic.SetURL(d.config.Host), elastic.SetBasicAuth(d.config.User, d.config.Pwd)}
 		if d.config.IgnoreCertificate {
-			opts = append(opts, elastic.SetScheme("https"), elastic.SetHttpClient(&http.Client{Transport: insecureTr}))
+			opts = append(opts, elastic.SetHttpClient(&http.Client{Transport: insecureTr}))
+		}
+		if d.config.Scheme == "https" { // http is default
+			elastic.SetScheme(d.config.Scheme)
 		}
 		client, err := elastic.NewClient(opts...)
 		if err != nil {

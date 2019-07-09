@@ -10,10 +10,10 @@ import (
 
 	"sync"
 
-	"github.com/inloco/kafka-elasticsearch-injector/src/models"
-	"github.com/inloco/kafka-elasticsearch-injector/src/schema_registry"
 	"github.com/Shopify/sarama"
 	"github.com/inloco/goavro"
+	"github.com/inloco/kafka-elasticsearch-injector/src/models"
+	"github.com/inloco/kafka-elasticsearch-injector/src/schema_registry"
 )
 
 // DecodeMessageFunc extracts a user-domain request object from an Kafka
@@ -93,11 +93,12 @@ func makeTimestamp(timestamp time.Time) int64 {
 func (d *Decoder) JsonMessageToRecord(context context.Context, msg *sarama.ConsumerMessage) (*models.Record, error) {
 	var jsonValue map[string]interface{}
 	err := json.Unmarshal(msg.Value, &jsonValue)
-	jsonValue[kafkaTimestampKey] = makeTimestamp(msg.Timestamp)
 
 	if err != nil {
 		return nil, err
 	}
+
+	jsonValue[kafkaTimestampKey] = makeTimestamp(msg.Timestamp)
 
 	return &models.Record{
 		Topic:     msg.Topic,

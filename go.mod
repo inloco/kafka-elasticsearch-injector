@@ -10,7 +10,7 @@ require (
 	github.com/go-kit/kit v0.9.0
 	github.com/inloco/goavro v0.0.0-20180215164239-eba86de05ad3
 	github.com/kr/pretty v0.1.0 // indirect
-	github.com/olivere/elastic/v7 v7.0.5
+	github.com/olivere/elastic/v7 v7.0.6
 	github.com/onsi/ginkgo v1.8.0 // indirect
 	github.com/onsi/gomega v1.5.0 // indirect
 	github.com/pkg/errors v0.8.1

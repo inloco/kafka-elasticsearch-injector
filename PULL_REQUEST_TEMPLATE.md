@@ -9,5 +9,4 @@ Please describe why this PR should be merged here.
 - [ ] Code compiles correctly
 - [ ] Created tests which fail without the change (if possible)
 - [ ] All tests passing
-- [ ] Bump project version, if this adds a new feature
 - [ ] Extended the README / documentation, if necessary

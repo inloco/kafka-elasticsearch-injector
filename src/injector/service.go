@@ -28,7 +28,7 @@ func NewService(logger log.Logger, metrics metrics.MetricsPublisher) Service {
 	return instrumentingMiddleware{
 		metricsPublisher: metrics,
 		next: basicService{
-			store.NewStore(logger),
+			store.NewStore(logger, metrics),
 		},
 	}
 }

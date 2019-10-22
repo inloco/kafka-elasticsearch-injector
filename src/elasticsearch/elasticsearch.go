@@ -5,6 +5,8 @@ import (
 	"crypto/tls"
 	"fmt"
 
+	"github.com/inloco/kafka-elasticsearch-injector/src/metrics"
+
 	"github.com/pkg/errors"
 
 	"net/http"
@@ -29,8 +31,9 @@ type RecordDatabase interface {
 }
 
 type recordDatabase struct {
-	logger log.Logger
-	config Config
+	metricsPublisher metrics.MetricsPublisher
+	logger           log.Logger
+	config           Config
 }
 
 func (d recordDatabase) GetClient() *elastic.Client {
@@ -76,6 +79,7 @@ func (d recordDatabase) Insert(records []*models.ElasticRecord) (*InsertResponse
 	timeout := d.config.BulkTimeout
 	ctx, cancel := context.WithTimeout(context.Background(), timeout)
 	defer cancel()
+
 	res, err := bulkRequest.Do(ctx)
 	if err == elastic.ErrNoClient || errors.Cause(err) == elastic.ErrNoClient {
 		_ = level.Warn(d.logger).Log("message", "no elasticsearch node available", "err", err)
@@ -104,7 +108,12 @@ func (d recordDatabase) Insert(records []*models.ElasticRecord) (*InsertResponse
 				recordMap[rec.ID] = rec
 			}
 			for _, f := range failed {
+				if f.Status == http.StatusBadRequest {
+					d.metricsPublisher.ElasticsearchBadRequests(1)
+					continue
+				}
 				if f.Status == http.StatusConflict {
+					d.metricsPublisher.ElasticsearchConflicts(1)
 					continue
 				}
 				retry = append(retry, recordMap[f.Id])
@@ -117,6 +126,7 @@ func (d recordDatabase) Insert(records []*models.ElasticRecord) (*InsertResponse
 				level.Warn(d.logger).Log("message", "insert failed: elasticsearch is overloaded", "retry_count", len(retry))
 			}
 		}
+		d.metricsPublisher.ElasticsearchRetries(len(retry))
 		return &InsertResponse{alreadyExistsIds, retry, overloaded}, nil
 	}
 
@@ -145,6 +155,10 @@ func (d recordDatabase) buildBulkRequest(records []*models.ElasticRecord) (*elas
 	return bulkRequest, nil
 }
 
-func NewDatabase(logger log.Logger, config Config) RecordDatabase {
-	return recordDatabase{logger: logger, config: config}
+func NewDatabase(logger log.Logger, config Config, metrics metrics.MetricsPublisher) RecordDatabase {
+	return recordDatabase{
+		metricsPublisher: metrics,
+		logger:           logger,
+		config:           config,
+	}
 }

@@ -15,6 +15,7 @@ import (
 
 	"github.com/inloco/kafka-elasticsearch-injector/src/kafka/fixtures"
 	"github.com/inloco/kafka-elasticsearch-injector/src/logger_builder"
+	"github.com/inloco/kafka-elasticsearch-injector/src/metrics"
 	"github.com/inloco/kafka-elasticsearch-injector/src/models"
 	"github.com/olivere/elastic/v7"
 	"github.com/stretchr/testify/assert"
@@ -28,7 +29,8 @@ var config = Config{
 	BlacklistedColumns: []string{},
 	BulkTimeout:        10 * time.Second,
 }
-var db = NewDatabase(logger, config)
+
+var db = NewDatabase(logger, config, metrics.NewMetricsPublisher())
 var template = `
 {
 	"template": "my-topic-*",

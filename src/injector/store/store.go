@@ -5,6 +5,7 @@ import (
 
 	"github.com/go-kit/kit/log"
 	"github.com/inloco/kafka-elasticsearch-injector/src/elasticsearch"
+	"github.com/inloco/kafka-elasticsearch-injector/src/metrics"
 	"github.com/inloco/kafka-elasticsearch-injector/src/models"
 )
 
@@ -24,6 +25,7 @@ func (s basicStore) Insert(records []*models.Record) error {
 	if err != nil {
 		return err
 	}
+
 	for {
 		res, err := s.db.Insert(elasticRecords)
 		if err != nil {
@@ -45,10 +47,10 @@ func (s basicStore) ReadinessCheck() bool {
 	return s.db.ReadinessCheck()
 }
 
-func NewStore(logger log.Logger) Store {
+func NewStore(logger log.Logger, metricsPublisher metrics.MetricsPublisher) Store {
 	config := elasticsearch.NewConfig()
 	return basicStore{
-		db:      elasticsearch.NewDatabase(logger, config),
+		db:      elasticsearch.NewDatabase(logger, config, metricsPublisher),
 		codec:   elasticsearch.NewCodec(logger, config),
 		backoff: config.Backoff,
 	}

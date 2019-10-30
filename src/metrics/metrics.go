@@ -18,6 +18,9 @@ type metrics struct {
 	recordsConsumed          *kitprometheus.Counter
 	endpointLatencyHistogram *kitprometheus.Summary
 	bufferFullGauge          *kitprometheus.Gauge
+	elasticsearchRetries     *kitprometheus.Counter
+	elasticsearchConflicts   *kitprometheus.Counter
+	elasticsearchBadRequest  *kitprometheus.Counter
 	lock                     sync.RWMutex
 	topicPartitionToOffset   map[string]map[int32]int64
 }
@@ -69,12 +72,27 @@ func (m *metrics) BufferFull(full bool) {
 	m.bufferFullGauge.Set(val)
 }
 
+func (m *metrics) ElasticsearchRetries(count int) {
+	m.elasticsearchRetries.Add(float64(count))
+}
+
+func (m *metrics) ElasticsearchConflicts(count int) {
+	m.elasticsearchConflicts.Add(float64(count))
+}
+
+func (m *metrics) ElasticsearchBadRequests(count int) {
+	m.elasticsearchBadRequest.Add(float64(count))
+}
+
 type MetricsPublisher interface {
 	PublishOffsetMetrics(highWaterMarks map[string]map[int32]int64)
 	UpdateOffset(topic string, partition int32, delay int64)
 	IncrementRecordsConsumed(count int)
 	RecordEndpointLatency(latency float64)
 	BufferFull(full bool)
+	ElasticsearchRetries(count int)
+	ElasticsearchConflicts(count int)
+	ElasticsearchBadRequests(cont int)
 }
 
 func NewMetricsPublisher() MetricsPublisher {
@@ -95,6 +113,18 @@ func NewMetricsPublisher() MetricsPublisher {
 		Name: "kafka_consumer_buffer_full",
 		Help: "Kafka consumer boolean indicating if app buffer is full",
 	}, []string{})
+	elasticsearchRetriesCounter := kitprometheus.NewCounterFrom(stdprometheus.CounterOpts{
+		Name: "elasticsearch_events_retryed",
+		Help: "number of events that needed to be retryed sending to Elasticsearch",
+	}, []string{})
+	elasticsearchConflictsCounter := kitprometheus.NewCounterFrom(stdprometheus.CounterOpts{
+		Name: "elasticsearch_document_already_exists",
+		Help: "number of events that tried to be inserted on elasticsearch but alredy existed",
+	}, []string{})
+	elasticsearchBadRequestCounter := kitprometheus.NewCounterFrom(stdprometheus.CounterOpts{
+		Name: "elasticsearch_bad_request",
+		Help: "the number of malformed events",
+	}, []string{})
 	return &metrics{
 		logger:                   logger,
 		partitionDelay:           partitionDelay,
@@ -102,6 +132,9 @@ func NewMetricsPublisher() MetricsPublisher {
 		endpointLatencyHistogram: endpointLatencySummary,
 		bufferFullGauge:          bufferFullGauge,
 		lock:                     sync.RWMutex{},
-		topicPartitionToOffset: make(map[string]map[int32]int64),
+		elasticsearchRetries:     elasticsearchRetriesCounter,
+		elasticsearchConflicts:   elasticsearchConflictsCounter,
+		elasticsearchBadRequest:  elasticsearchBadRequestCounter,
+		topicPartitionToOffset:   make(map[string]map[int32]int64),
 	}
 }

@@ -51,13 +51,14 @@ func (be *fixtureEndpoints) Insert() endpoint.Endpoint {
 }
 
 var (
-	logger = logger_builder.NewLogger("consumer-test")
-	config = elasticsearch.Config{
+	metricsPublisher = metrics.NewMetricsPublisher()
+	logger           = logger_builder.NewLogger("consumer-test")
+	config           = elasticsearch.Config{
 		Host:        "http://localhost:9200",
 		Index:       fixtures.DefaultTopic,
 		BulkTimeout: 10 * time.Second,
 	}
-	db        = elasticsearch.NewDatabase(logger, config)
+	db        = elasticsearch.NewDatabase(logger, config, metricsPublisher)
 	codec     = elasticsearch.NewCodec(logger, config)
 	service   = fixtureService{db, codec}
 	endpoints = &fixtureEndpoints{
@@ -90,7 +91,7 @@ func TestMain(m *testing.M) {
 		BatchSize:             1,
 		MetricsUpdateInterval: 30 * time.Second,
 	}
-	k = NewKafka("localhost:9092", consumer, metrics.NewMetricsPublisher())
+	k = NewKafka("localhost:9092", consumer, metricsPublisher)
 	retCode := m.Run()
 	os.Exit(retCode)
 }

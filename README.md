@@ -113,6 +113,9 @@ The exported metrics are:
 - `kafka_consumer_records_consumed_successfully`: number of records consumed successfully by this instance.
 - `kafka_consumer_endpoint_latency_histogram_seconds`: endpoint latency in seconds (insertion to elasticsearch).
 - `kafka_consumer_buffer_full`: indicates whether the app buffer is full(meaning that elasticsearch is not being able to keep up with the topic volume).
+- `elasticsearch_events_retried`: number of events that needed to be retryed to sent to Elasticsearch
+- `elasticsearch_document_already_exists`: number of events that tryed to be inserted on elasticsearch but already existed
+- `elasticsearch_bad_request`: the number of requests that failed due to malformed events
 
 ## Development
 

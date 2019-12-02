@@ -52,7 +52,7 @@ If you are planning on using Kibana as an analytics tool, is recommended to use 
 Index templates allow you to define templates that will automatically be applied when new indices are created. In this
 example, a wildcard (*) is used and every new index following this pattern will use the template configuration.
 
-To set a template for some index, send a PUT REST method to: ```http://elasticsearch:9200/_template/sample-logs ``` with
+To set a template for some index, send a PUT REST method to: ```http://elasticsearch:9200/_template/sample-logs``` with
 the JSON below that matches your Elasticsearch version.
 
 #### 5.5.x ~ 6.8.x

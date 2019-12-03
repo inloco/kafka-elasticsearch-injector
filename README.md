@@ -45,17 +45,19 @@ your mappings based on the kind of data you are sending. This is fine for some u
 strongly recommend that you create your own mappings (Especially if you care about your date
 types). If you are using multiple indexes, a index template is something that you should look into.
 
-If you are planning on using kibana as an analytics tool, is recommended to use a template for your data like belows.
+If you are planning on using Kibana as an analytics tool, is recommended to use a template for your data like belows.
 
-### Setting up a template in Elastic Search
-
-> Note: This step only works with elastic search 5.5.0 and above.
+### Setting up a template in Elasticsearch
 
 Index templates allow you to define templates that will automatically be applied when new indices are created. In this
 example, a wildcard (*) is used and every new index following this pattern will use the template configuration.
 
-To set a template for some index,  send a PUT REST method to: ```http://elasticsearch:9200/_template/sample-logs ``` with belows JSON
-file.
+To set a template for some index, send a PUT REST method to: ```http://elasticsearch:9200/_template/sample-logs``` with
+the JSON below that matches your Elasticsearch version.
+
+#### 5.5.x ~ 6.8.x
+
+> The _\_default\__ field is deprecated for versions above 6.x, but still supported.
 
 ```json
 {
@@ -91,17 +93,47 @@ file.
 }
 ```
 
-This template does the following
+##### 7.0.0 and above
+```json
+{
+  "template": "sample-logs-*",
+  "mappings": {
+    "_source": {
+      "enabled": "true"
+    },
+    "properties": {
+      "timestamp": {
+        "type": "date",
+        "format": "date_optional_time",
+        "ignore_malformed": true
+      }
+    },
+    "dynamic_templates": [
+      {
+        "strings": {
+          "match_mapping_type": "string",
+          "mapping": {
+            "type": "text",
+            "index": false
+          }
+        }
+      }
+    ]
+  }
+}
+```
+
+Both templates do the following things:
 
 - Makes all strings not analyzed by default. If you want/need analyzed fields, you can either remove
   the dynamic template for "strings" or add your field as a property
 - Adds a date property to be used as a time field. Replace according to your field name and format.
 - Sets the `_default_` type. Matches all types and acts as a base. You can override settings or set
-  new properties by adding other types.
-- If your're using a timestamp with milliseconds, use ```epoch_millis``` as format for date type.
+  new properties by adding other types. For versions above `7.0.0`, the behavior is the same, but the 
+  field was removed. You can read more about this [here][removal_of_mapping_types].
+- If you're using a timestamp with milliseconds, use ```epoch_millis``` as format for date type.
 
-You can find more information here: [Indices Templates][indices_templates], [Mapping Changes][mapping_changes],
-[Date datatype][date_datatype]
+You can find more information here: [Indices Templates][indices_templates], [Date datatype][date_datatype]
 
 ### Monitoring
 
@@ -135,6 +167,6 @@ Please update this file before merging any PRs to the master branch.
 When a `git push` is triggered, CircleCI will run the project's tests and push the generated docker image to dockerhub.
 If the current branch is master, the docker tag will be `<version>`. If not, it will be `<version>-<commit-sha>`
 
-[mapping_changes]: https://www.elastic.co/guide/en/elasticsearch/reference/current/breaking_50_mapping_changes.html
 [indices_templates]: https://www.elastic.co/guide/en/elasticsearch/reference/current/indices-templates.html
 [date_datatype]: https://www.elastic.co/guide/en/elasticsearch/reference/current/date.html
+[removal_of_mapping_types]: https://www.elastic.co/guide/en/elasticsearch/reference/current/removal-of-types.html

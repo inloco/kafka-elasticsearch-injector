@@ -30,7 +30,7 @@ var config = Config{
 	BulkTimeout:        10 * time.Second,
 }
 
-var db = NewDatabase(logger, config, metrics.NewMetricsPublisher())
+var db = NewDatabase(logger, metrics.NewMetricsPublisher())
 var template = `
 {
 	"template": "my-topic-*",

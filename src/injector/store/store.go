@@ -48,10 +48,10 @@ func (s basicStore) ReadinessCheck() bool {
 }
 
 func NewStore(logger log.Logger, metricsPublisher metrics.MetricsPublisher) Store {
-	config := elasticsearch.NewConfig()
+	// config := elasticsearch.NewConfig()
 	return basicStore{
-		db:      elasticsearch.NewDatabase(logger, config, metricsPublisher),
-		codec:   elasticsearch.NewCodec(logger, config),
-		backoff: config.Backoff,
+		db:      elasticsearch.NewDatabase(logger, metricsPublisher),
+		codec:   elasticsearch.NewCodec(logger),
+		backoff: time.Minute,
 	}
 }

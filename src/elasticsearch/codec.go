@@ -15,12 +15,11 @@ type Codec interface {
 }
 
 type basicCodec struct {
-	config Config
 	logger log.Logger
 }
 
-func NewCodec(logger log.Logger, config Config) Codec {
-	return basicCodec{logger: logger, config: config}
+func NewCodec(logger log.Logger) Codec {
+	return basicCodec{logger: logger}
 }
 
 func (c basicCodec) EncodeElasticRecords(records []*models.Record) ([]*models.ElasticRecord, error) {
@@ -40,7 +39,7 @@ func (c basicCodec) EncodeElasticRecords(records []*models.Record) ([]*models.El
 			Index: index,
 			Type:  typeDoc,
 			ID:    docID,
-			Json:  record.FilteredFieldsJSON(c.config.BlacklistedColumns),
+			Json:  record.FilteredFieldsJSON(nil),
 		}
 	}
 
@@ -48,32 +47,32 @@ func (c basicCodec) EncodeElasticRecords(records []*models.Record) ([]*models.El
 }
 
 func (c basicCodec) getDatabaseIndex(record *models.Record) (string, error) {
-	indexPrefix := c.config.Index
-	if indexPrefix == "" {
-		indexPrefix = record.Topic
-	}
+	// indexPrefix := "xalala"
+	// if indexPrefix == "" {
+	// 	indexPrefix = record.Topic
+	// }
 
-	indexColumn := c.config.IndexColumn
-	indexSuffix := record.FormatTimestampDay()
-	if c.config.TimeSuffix == TimeSuffixHour {
-		indexSuffix = record.FormatTimestampHour()
-	}
-	if indexColumn != "" {
-		newIndexSuffix, err := record.GetValueForField(indexColumn)
-		if err != nil {
-			level.Error(c.logger).Log("err", err, "message", "Could not get column value from record.")
-			return "", err
-		}
-		indexSuffix = newIndexSuffix
-	}
+	// indexColumn := ""
+	// indexSuffix := record.FormatTimestampDay()
+	// if 0 == TimeSuffixHour {
+	// 	indexSuffix = record.FormatTimestampHour()
+	// }
+	// if indexColumn != "" {
+	// 	newIndexSuffix, err := record.GetValueForField(indexColumn)
+	// 	if err != nil {
+	// 		level.Error(c.logger).Log("err", err, "message", "Could not get column value from record.")
+	// 		return "", err
+	// 	}
+	// 	indexSuffix = newIndexSuffix
+	// }
 
-	return fmt.Sprintf("%s-%s", indexPrefix, indexSuffix), nil
+	return fmt.Sprintf("%s-%s", "xalala", "xalala"), nil
 }
 
 func (c basicCodec) getDatabaseDocID(record *models.Record) (string, error) {
 	docID := record.GetId()
 
-	docIDColumn := c.config.DocIDColumn
+	docIDColumn := ""
 	if docIDColumn != "" {
 		newDocID, err := record.GetValueForField(docIDColumn)
 		if err != nil {

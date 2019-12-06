@@ -14,22 +14,21 @@ import (
 	"github.com/inloco/kafka-elasticsearch-injector/src/kafka"
 	"github.com/inloco/kafka-elasticsearch-injector/src/logger_builder"
 	"github.com/inloco/kafka-elasticsearch-injector/src/metrics"
-	"github.com/inloco/kafka-elasticsearch-injector/src/probes"
 	"github.com/inloco/kafka-elasticsearch-injector/src/schema_registry"
 )
 
 func main() {
 	logger := logger_builder.NewLogger("kafka-elasticsearch-injector")
 
-	probesPort := os.Getenv("PROBES_PORT")
-	p := probes.New(probesPort)
-	p.SetLivenessCheck(func() bool {
-		return true
-	})
-	level.Info(logger).Log(
-		"message", fmt.Sprintf("Initializing kubernetes probes at %s", probesPort),
-	)
-	go p.Serve()
+	// probesPort := os.Getenv("PROBES_PORT")
+	// p := probes.New(probesPort)
+	// p.SetLivenessCheck(func() bool {
+	// 	return true
+	// })
+	// level.Info(logger).Log(
+	// 	"message", fmt.Sprintf("Initializing kubernetes probes at %s", probesPort),
+	// )
+	// go p.Serve()
 	metrics.Register()
 	schemaRegistry, err := schema_registry.NewSchemaRegistry(os.Getenv("SCHEMA_REGISTRY_URL"))
 	if err != nil {
@@ -48,7 +47,7 @@ func main() {
 	}
 	metricsPublisher := metrics.NewMetricsPublisher()
 	service := injector.NewService(logger, metricsPublisher)
-	p.SetReadinessCheck(service.ReadinessCheck)
+	// p.SetReadinessCheck(service.ReadinessCheck)
 
 	endpoints := injector.MakeEndpoints(service)
 

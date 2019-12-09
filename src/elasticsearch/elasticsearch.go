@@ -87,7 +87,7 @@ func (d recordDatabase) Insert(records []*models.ElasticRecord) (*InsertResponse
 
 		req, _ := http.NewRequest("POST", "http://gzip-test.inlocomedia.com/events/v3", &buf)
 		req.Header.Add("Content-Encoding", "gzip")
-		req.Header.Add("Content-Type", "multipart/form-data")
+		req.Header.Add("Content-Type", "application/octet-stream")
 		req.Header.Add("Content-Length", contentLength)
 		client.Do(req)
 		fmt.Println("request made")

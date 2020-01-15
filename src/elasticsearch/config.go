@@ -27,6 +27,7 @@ type Config struct {
 	BulkTimeout        time.Duration
 	Backoff            time.Duration
 	TimeSuffix         TimeIndexSuffix
+	DisableSniffing    bool
 }
 
 func NewConfig() Config {
@@ -68,6 +69,15 @@ func NewConfig() Config {
 			scheme = c
 		}
 	}
+
+	disableSniff := false
+	if c := os.Getenv("ELASTICSEARCH_DISABLE_SNIFFING"); c != "" {
+		res, err := strconv.ParseBool(c)
+		if err == nil {
+			disableSniff = res
+		}
+	}
+
 	return Config{
 		Host:               os.Getenv("ELASTICSEARCH_HOST"),
 		User:               os.Getenv("ELASTICSEARCH_USER"),
@@ -81,5 +91,6 @@ func NewConfig() Config {
 		BulkTimeout:        timeout,
 		Backoff:            backoff,
 		TimeSuffix:         timeSuffix,
+		DisableSniffing:    disableSniff,
 	}
 }

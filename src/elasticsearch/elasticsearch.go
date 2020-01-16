@@ -49,7 +49,7 @@ func (d recordDatabase) GetClient() *elastic.Client {
 			opts = append(opts, elastic.SetScheme(d.config.Scheme))
 		}
 		if d.config.DisableSniffing { // sniffing is enabled by default
-			opts = append(opts, elastic.SetSniff(d.config.DisableSniffing))
+			opts = append(opts, elastic.SetSniff(!d.config.DisableSniffing))
 		}
 		client, err := elastic.NewClient(opts...)
 		if err != nil {

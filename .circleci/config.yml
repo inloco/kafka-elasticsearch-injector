@@ -33,7 +33,7 @@ jobs:
           name: Login to Docker Hub
           command: |
             docker info
-            docker login --username $DOCKER_USER --password $DOCKER_PASSWORD
+            docker login --username $DOCKER_USER --password $DOCKER_PASSWORD quay.io
       - restore_cache:
           keys:
             - go-mod-v4-{{ checksum "go.sum" }}
@@ -106,7 +106,7 @@ jobs:
             docker load -i /tmp/workspace/image.tar
       - run:
           name: "docker login"
-          command: docker login --username $DOCKER_USER --password $DOCKER_PASSWORD
+          command: docker login --username $DOCKER_USER --password $DOCKER_PASSWORD quay.io
       - run:
           name: Push images
           command: |

@@ -1,7 +1,7 @@
 version: 2.1
 defaults: &defaults
   environment:
-    DOCKER_REPO: inlocomedia/kafka-elasticsearch-injector-go
+    DOCKER_REPO: quay.io/inloco/kafka-elasticsearch-injector
 jobs:
   test:
     <<: *defaults
@@ -128,6 +128,7 @@ workflows:
   test-and-deploy-image-for-commit:
     jobs:
       - test:
+        context: quay-push-credentials
         filters:
           branches:
             ignore: /master/
@@ -145,24 +146,25 @@ workflows:
   test-and-deploy-image-for-tag:
     jobs:
       - test:
-          filters:
-            tags:
-              only: /.+/
-            branches:
-              ignore: /.*/
+        context: quay-push-credentials
+        filters:
+          tags:
+            only: /.+/
+          branches:
+            ignore: /.*/
       - build-image:
-          filters:
-            tags:
-              only: /.+/
-            branches:
-              ignore: /.*/
+        filters:
+          tags:
+            only: /.+/
+          branches:
+            ignore: /.*/
       - deploy-image:
-          context: media
-          requires:
-            - test
-            - build-image
-          filters:
-            tags:
-              only: /.+/
-            branches:
-              ignore: /.*/
+        context: media
+        requires:
+          - test
+          - build-image
+        filters:
+          tags:
+            only: /.+/
+          branches:
+            ignore: /.*/

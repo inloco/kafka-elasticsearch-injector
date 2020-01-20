@@ -48,6 +48,9 @@ func (d recordDatabase) GetClient() *elastic.Client {
 		if d.config.Scheme == "https" { // http is default
 			opts = append(opts, elastic.SetScheme(d.config.Scheme))
 		}
+		if d.config.DisableSniffing { // sniffing is enabled by default
+			opts = append(opts, elastic.SetSniff(!d.config.DisableSniffing))
+		}
 		client, err := elastic.NewClient(opts...)
 		if err != nil {
 			level.Error(d.logger).Log("err", err, "message", "could not init elasticsearch client")

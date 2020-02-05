@@ -14,28 +14,29 @@ To create new injectors for your topics, you should create a new kubernetes depl
 ### Configuration variables
 - `KAFKA_ADDRESS` Kafka url. **REQUIRED**
 - `SCHEMA_REGISTRY_URL` Schema registry url port and protocol. **REQUIRED**
-- `KAFKA_TOPICS` Comma separated list of kafka topics to subscribe **REQUIRED**
+- `KAFKA_TOPICS` Comma separated list of Kafka topics to subscribe **REQUIRED**
 - `KAFKA_CONSUMER_GROUP` Consumer group id, should be unique across the cluster. Please be careful with this variable **REQUIRED**
 - `ELASTICSEARCH_HOST` Elasticsearch url with port and protocol. **REQUIRED**
-- `ES_INDEX` Elasticsearch index prefix to write records to(actual index is followed by the record's timestamp to avoid very large indexes). Defaults to topic name. **OPTIONAL**
+- `ES_INDEX` Elasticsearch index to write records to (actual index is followed by the record's timestamp to avoid very large indexes). Defaults to topic name. **OPTIONAL**
+- `ES_INDEX_PREFIX` Prefix that will be added to the Elasticsearch index. Defaults to an empty string. **OPTIONAL**
 - `PROBES_PORT` Kubernetes probes port. Set to any available port. **REQUIRED**
 - `K8S_LIVENESS_ROUTE` Kubernetes route for liveness check. **REQUIRED**
 - `K8S_READINESS_ROUTE`Kubernetes route for readiness check. **REQUIRED**
 - `ELASTICSEARCH_USER` Elasticsearch user. **OPTIONAL**
 - `ELASTICSEARCH_PASSWORD` Elasticsearch password. **OPTIONAL**
-- `ELASTICSEARCH_SCHEME` scheme to be used when connecting to elasticsearch(http or https). Defaults to http. **OPTIONAL**
-- `ELASTICSEARCH_IGNORE_CERT` if set to "true", ignores certificates when connecting to a secure elasticsearch cluster. Defaults to false. **OPTIONAL**
+- `ELASTICSEARCH_SCHEME` scheme to be used when connecting to Elasticsearch (http or https). Defaults to http. **OPTIONAL**
+- `ELASTICSEARCH_IGNORE_CERT` if set to "true", ignores certificates when connecting to a secure Elasticsearch cluster. Defaults to false. **OPTIONAL**
 - `ELASTICSEARCH_DISABLE_SNIFFING` if set to "true", the client will not sniff Elasticsearch nodes during the node discovery process. Defaults to false. **OPTIONAL**
 - `KAFKA_CONSUMER_CONCURRENCY` Number of parallel goroutines working as a consumer. Default value is 1 **OPTIONAL**
-- `KAFKA_CONSUMER_BATCH_SIZE` Number of records to accumulate before sending them to elasticsearch(for each goroutine). Default value is 100 **OPTIONAL**
+- `KAFKA_CONSUMER_BATCH_SIZE` Number of records to accumulate before sending them to Elasticsearch (for each goroutine). Default value is 100 **OPTIONAL**
 - `ES_INDEX_COLUMN` Record field to append to index name. Ex: to create one ES index per campaign, use "campaign_id" here **OPTIONAL**
-- `ES_BLACKLISTED_COLUMNS` Comma separated list of record fields to filter before sending to elasticsearch. Defaults to empty string. **OPTIONAL**
+- `ES_BLACKLISTED_COLUMNS` Comma separated list of record fields to filter before sending to Elasticsearch. Defaults to empty string. **OPTIONAL**
 - `ES_DOC_ID_COLUMN` Record field to be the document ID of Elasticsearch. Defaults to "kafkaRecordPartition:kafkaRecordOffset". **OPTIONAL**
 - `LOG_LEVEL` Determines the log level for the app. Should be set to DEBUG, WARN, NONE or INFO. Defaults to INFO. **OPTIONAL**
 - `METRICS_PORT` Port to export app metrics **REQUIRED**
-- `ES_BULK_TIMEOUT` Timeout for elasticsearch bulk writes in the format of golang's `time.ParseDuration`. Default value is 1s **OPTIONAL**
-- `ES_BULK_BACKOFF` Constant backoff when elasticsearch is overloaded. in the format of golang's `time.ParseDuration`. Default value is 1s **OPTIONAL**
-- `ES_TIME_SUFFIX` Indicates what time unit to append to index names on elasticsearch. Supported values are `day` and `hour`. Default value is `day` **OPTIONAL**
+- `ES_BULK_TIMEOUT` Timeout for Elasticsearch bulk writes in the format of golang's `time.ParseDuration`. Default value is 1s **OPTIONAL**
+- `ES_BULK_BACKOFF` Constant backoff when Elasticsearch is overloaded. in the format of golang's `time.ParseDuration`. Default value is 1s **OPTIONAL**
+- `ES_TIME_SUFFIX` Indicates what time unit to append to index names on Elasticsearch. Supported values are `day` and `hour`. Default value is `day` **OPTIONAL**
 - `KAFKA_CONSUMER_RECORD_TYPE` Kafka record type. Should be set to "avro" or "json". Defaults to avro. **OPTIONAL**
 - `KAFKA_CONSUMER_METRICS_UPDATE_INTERVAL` The interval which the app updates the exported metrics in the format of golang's `time.ParseDuration`. Defaults to 30s. **OPTIONAL**
 

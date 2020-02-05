@@ -6,8 +6,8 @@ compile-binary:
 
 docker/build: compile-binary
 	GOOS=linux GOARCH=386 go build -o bin/producer util/producer/producer.go
-	docker build --rm=false -t "inlocomedia/kafka-elasticsearch-injector:local" -f cmd/Dockerfile .
-	docker build --rm=false -t "inlocomedia/kafka-elasticsearch-injector:producer-local" -f util/producer/Dockerfile .
+	docker build --rm=false -t "quay.io/inloco/kafka-elasticsearch-injector:local" -f cmd/Dockerfile .
+	docker build --rm=false -t "quay.io/inloco/kafka-elasticsearch-injector:producer-local" -f util/producer/Dockerfile .
 
 docker/run:
 	docker-compose up -d zookeeper kafka schema-registry elasticsearch kibana

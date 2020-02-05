@@ -21,6 +21,7 @@ type Config struct {
 	IgnoreCertificate  bool
 	Scheme             string
 	Index              string
+	IndexPrefix        string
 	IndexColumn        string
 	DocIDColumn        string
 	BlacklistedColumns []string
@@ -85,6 +86,7 @@ func NewConfig() Config {
 		IgnoreCertificate:  ignoreCert,
 		Scheme:             scheme,
 		Index:              os.Getenv("ES_INDEX"),
+		IndexPrefix:        os.Getenv("ES_INDEX_PREFIX"),
 		IndexColumn:        os.Getenv("ES_INDEX_COLUMN"),
 		DocIDColumn:        os.Getenv("ES_DOC_ID_COLUMN"),
 		BlacklistedColumns: strings.Split(os.Getenv("ES_BLACKLISTED_COLUMNS"), ","),

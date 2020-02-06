@@ -53,11 +53,6 @@ func (c basicCodec) getDatabaseIndex(record *models.Record) (string, error) {
 		indexName = record.Topic
 	}
 
-	indexPrefix := c.config.IndexPrefix
-	if indexPrefix != "" {
-		indexName = indexPrefix + indexName
-	}
-
 	indexColumn := c.config.IndexColumn
 	indexSuffix := record.FormatTimestampDay()
 	if c.config.TimeSuffix == TimeSuffixHour {
@@ -72,7 +67,11 @@ func (c basicCodec) getDatabaseIndex(record *models.Record) (string, error) {
 		indexSuffix = newIndexSuffix
 	}
 
-	return fmt.Sprintf("%s-%s", indexName, indexSuffix), nil
+	return fmt.Sprintf(
+		"%s%s-%s",
+		c.config.IndexPrefix,
+		indexName,
+		indexSuffix), nil
 }
 
 func (c basicCodec) getDatabaseDocID(record *models.Record) (string, error) {

@@ -18,7 +18,7 @@ To create new injectors for your topics, you should create a new kubernetes depl
 - `KAFKA_CONSUMER_GROUP` Consumer group id, should be unique across the cluster. Please be careful with this variable **REQUIRED**
 - `ELASTICSEARCH_HOST` Elasticsearch url with port and protocol. **REQUIRED**
 - `ES_INDEX` Elasticsearch index to write records to (actual index is followed by the record's timestamp to avoid very large indexes). Defaults to topic name. **OPTIONAL**
-- `ES_INDEX_PREFIX` Prefix that will be added to the Elasticsearch index. Defaults to an empty string. **OPTIONAL**
+- `ES_INDEX_PREFIX` Prefix that will be added to every Elasticsearch index. Defaults to an empty string. **OPTIONAL**
 - `PROBES_PORT` Kubernetes probes port. Set to any available port. **REQUIRED**
 - `K8S_LIVENESS_ROUTE` Kubernetes route for liveness check. **REQUIRED**
 - `K8S_READINESS_ROUTE`Kubernetes route for readiness check. **REQUIRED**

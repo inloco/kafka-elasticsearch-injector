@@ -48,9 +48,9 @@ func (c basicCodec) EncodeElasticRecords(records []*models.Record) ([]*models.El
 }
 
 func (c basicCodec) getDatabaseIndex(record *models.Record) (string, error) {
-	indexPrefix := c.config.Index
-	if indexPrefix == "" {
-		indexPrefix = record.Topic
+	indexName := c.config.Index
+	if indexName == "" {
+		indexName = record.Topic
 	}
 
 	indexColumn := c.config.IndexColumn
@@ -67,7 +67,11 @@ func (c basicCodec) getDatabaseIndex(record *models.Record) (string, error) {
 		indexSuffix = newIndexSuffix
 	}
 
-	return fmt.Sprintf("%s-%s", indexPrefix, indexSuffix), nil
+	return fmt.Sprintf(
+		"%s%s-%s",
+		c.config.IndexPrefix,
+		indexName,
+		indexSuffix), nil
 }
 
 func (c basicCodec) getDatabaseDocID(record *models.Record) (string, error) {

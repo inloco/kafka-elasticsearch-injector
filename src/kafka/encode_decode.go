@@ -11,7 +11,7 @@ import (
 	"sync"
 
 	"github.com/Shopify/sarama"
-	"github.com/inloco/goavro"
+	"github.com/linkedin/goavro/v2"
 	"github.com/inloco/kafka-elasticsearch-injector/src/models"
 	"github.com/inloco/kafka-elasticsearch-injector/src/schema_registry"
 )

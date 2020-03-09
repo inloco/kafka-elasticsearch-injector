@@ -38,6 +38,16 @@ func (d *Decoder) DeserializerFor(recordType string) DecodeMessageFunc {
 }
 
 func (d *Decoder) AvroMessageToRecord(context context.Context, msg *sarama.ConsumerMessage) (*models.Record, error) {
+	if msg.Value == nil {
+		return &models.Record{
+			Topic:     msg.Topic,
+			Partition: msg.Partition,
+			Offset:    msg.Offset,
+			Timestamp: msg.Timestamp,
+			Json:      nil,
+		}, nil
+	}
+
 	schemaId := getSchemaId(msg)
 	avroRecord := msg.Value[5:]
 	schema, err := d.SchemaRegistry.GetSchema(schemaId)

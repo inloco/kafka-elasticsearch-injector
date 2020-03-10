@@ -89,6 +89,7 @@ func (d recordDatabase) Insert(records []*models.ElasticRecord) (*InsertResponse
 		return &InsertResponse{AlreadyExists: nil, Retry: records, Backoff: true}, nil
 	}
 	if err != nil {
+		level.Debug(d.logger).Log("message", "something went wrong with elasticsearch", "err", err)
 		return nil, err
 	}
 	if res.Errors {
@@ -112,16 +113,19 @@ func (d recordDatabase) Insert(records []*models.ElasticRecord) (*InsertResponse
 			}
 			for _, f := range failed {
 				if f.Status == http.StatusBadRequest {
+					level.Debug(d.logger).Log("message", "elasticsearch bad requests", "err", f)
 					d.metricsPublisher.ElasticsearchBadRequests(1)
 					continue
 				}
 				if f.Status == http.StatusConflict {
+					level.Debug(d.logger).Log("message", "elasticsearch conflicts", "err", f)
 					d.metricsPublisher.ElasticsearchConflicts(1)
 					continue
 				}
 				retry = append(retry, recordMap[f.Id])
 				if f.Status == http.StatusTooManyRequests {
 					//es is overloaded, backoff
+					level.Debug(d.logger).Log("message", "es is overloaded, backoff")
 					overloaded = true
 				}
 			}

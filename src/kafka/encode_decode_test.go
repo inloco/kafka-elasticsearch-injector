@@ -6,9 +6,11 @@ import (
 	"sync"
 	"testing"
 	"time"
+	"errors"
 
 	"github.com/Shopify/sarama"
 	"github.com/stretchr/testify/assert"
+	e "github.com/inloco/kafka-elasticsearch-injector/src/errors"
 )
 
 type dummy struct {
@@ -48,4 +50,12 @@ func TestDecoder_JsonMessageToRecord_MalformedJson(t *testing.T) {
 	})
 	assert.Nil(t, record)
 	assert.NotNil(t, err)
+}
+
+func TestDecoder_AvroMessageToRecord_NilMessageValue(t *testing.T) {
+	d := &Decoder{CodecCache: sync.Map{}}
+	record, err := d.AvroMessageToRecord(nil, &sarama.ConsumerMessage{Value: nil})
+	isErrNilMessage := errors.Is(err, e.ErrNilMessage)
+	assert.Nil(t, record)
+	assert.Equal(t, isErrNilMessage, true)
 }

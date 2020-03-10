@@ -3,6 +3,7 @@ package kafka
 import (
 	"context"
 	"os"
+	"errors"
 
 	"time"
 
@@ -13,6 +14,7 @@ import (
 	"github.com/go-kit/kit/log/level"
 	"github.com/inloco/kafka-elasticsearch-injector/src/metrics"
 	"github.com/inloco/kafka-elasticsearch-injector/src/models"
+	e "github.com/inloco/kafka-elasticsearch-injector/src/errors"
 )
 
 type Notification int32
@@ -144,6 +146,10 @@ func (k *kafka) worker(consumer *cluster.Consumer, buffSize int, notifications c
 				for _, msg := range buf {
 					req, err := k.consumer.Decoder(nil, msg)
 					if err != nil {
+						if errors.Is(err, e.ErrNilMessage) {
+							continue
+						}
+
 						level.Error(k.consumer.Logger).Log(
 							"message", "Error decoding message",
 							"err", err.Error(),

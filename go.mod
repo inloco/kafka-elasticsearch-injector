@@ -9,7 +9,6 @@ require (
 	github.com/go-kit/kit v0.10.0
 	github.com/klauspost/cpuid v1.2.1 // indirect
 	github.com/linkedin/goavro/v2 v2.9.7
-	github.com/modern-go/concurrent v0.0.0-20180306012644-bacd9c7ef1dd // indirect
 	github.com/olivere/elastic/v7 v7.0.12
 	github.com/onsi/ginkgo v1.8.0 // indirect
 	github.com/onsi/gomega v1.5.0 // indirect

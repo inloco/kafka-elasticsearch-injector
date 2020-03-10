@@ -6,8 +6,8 @@ import (
 
 	"math/rand"
 
-	"github.com/inloco/goavro"
 	"github.com/inloco/kafka-elasticsearch-injector/src/models"
+	"github.com/linkedin/goavro/v2"
 )
 
 const DefaultTopic = "my-topic"

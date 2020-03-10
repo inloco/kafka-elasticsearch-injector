@@ -23,6 +23,7 @@ import (
 type DecodeMessageFunc func(context.Context, *sarama.ConsumerMessage) (record *models.Record, err error)
 
 const kafkaTimestampKey = "@timestamp"
+const keyField = "key"
 
 type Decoder struct {
 	SchemaRegistry *schema_registry.SchemaRegistry
@@ -48,27 +49,7 @@ func (d *Decoder) AvroMessageToRecord(context context.Context, msg *sarama.Consu
 		}, nil
 	}
 
-	schemaId := getSchemaId(msg)
-	avroRecord := msg.Value[5:]
-	schema, err := d.SchemaRegistry.GetSchema(schemaId)
-	if err != nil {
-		return nil, err
-	}
-	var codec *goavro.Codec
-	if codecI, ok := d.CodecCache.Load(schemaId); ok {
-		codec, ok = codecI.(*goavro.Codec)
-	}
-
-	if codec == nil {
-		codec, err = goavro.NewCodec(schema)
-		if err != nil {
-			return nil, err
-		}
-
-		d.CodecCache.Store(schemaId, codec)
-	}
-
-	native, _, err := codec.NativeFromBinary(avroRecord)
+	native, err := d.nativeFromBinary(msg.Value)
 	if err != nil {
 		return nil, err
 	}
@@ -86,6 +67,14 @@ func (d *Decoder) AvroMessageToRecord(context context.Context, msg *sarama.Consu
 	}
 
 	parsedNative[kafkaTimestampKey] = makeTimestamp(msg.Timestamp)
+
+	if msg.Key != nil {
+		nativeKey, err := d.nativeFromBinary(msg.Key)
+		if err != nil {
+			return nil, err
+		}
+		parsedNative[keyField] = nativeKey
+	}
 
 	return &models.Record{
 		Topic:     msg.Topic,
@@ -119,7 +108,36 @@ func (d *Decoder) JsonMessageToRecord(context context.Context, msg *sarama.Consu
 	}, nil
 }
 
-func getSchemaId(msg *sarama.ConsumerMessage) int32 {
-	schemaIdBytes := msg.Value[1:5]
+func (d *Decoder) nativeFromBinary(value []byte) (interface{}, error) {
+	schemaId := getSchemaId(value)
+	avroRecord := value[5:]
+	schema, err := d.SchemaRegistry.GetSchema(schemaId)
+	if err != nil {
+		return nil, err
+	}
+	var codec *goavro.Codec
+	if codecI, ok := d.CodecCache.Load(schemaId); ok {
+		codec, ok = codecI.(*goavro.Codec)
+	}
+
+	if codec == nil {
+		codec, err = goavro.NewCodec(schema)
+		if err != nil {
+			return nil, err
+		}
+
+		d.CodecCache.Store(schemaId, codec)
+	}
+
+	native, _, err := codec.NativeFromBinary(avroRecord)
+	if err != nil {
+		return nil, err
+	}
+
+	return native, nil
+}
+
+func getSchemaId(value []byte) int32 {
+	schemaIdBytes := value[1:5]
 	return int32(schemaIdBytes[0])<<24 | int32(schemaIdBytes[1])<<16 | int32(schemaIdBytes[2])<<8 | int32(schemaIdBytes[3])
 }

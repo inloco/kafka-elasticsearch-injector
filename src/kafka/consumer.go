@@ -150,6 +150,7 @@ func (k *kafka) worker(consumer *cluster.Consumer, buffSize int, notifications c
 						)
 						continue
 					}
+					level.Debug(k.consumer.Logger).Log("message decoded", req)
 					decoded = append(decoded, req)
 				}
 			}

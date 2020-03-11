@@ -21,6 +21,10 @@ type basicStore struct {
 }
 
 func (s basicStore) Insert(records []*models.Record) error {
+	if len(records) == 0 {
+		return nil
+	}
+	
 	elasticRecords, err := s.codec.EncodeElasticRecords(records)
 	if err != nil {
 		return err

@@ -38,6 +38,10 @@ func NewFixtureRecord() *FixtureRecord {
 	return &FixtureRecord{Id: rand.Int31()}
 }
 
+func NewEmptyFixtureRecord() *FixtureRecord {
+	return &FixtureRecord{}
+}
+
 func NewRecord(ts time.Time) (*models.Record, int32, int32) {
 	id := rand.Int31()
 	value := rand.Int31()

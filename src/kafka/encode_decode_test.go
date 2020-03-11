@@ -57,5 +57,5 @@ func TestDecoder_AvroMessageToRecord_NilMessageValue(t *testing.T) {
 	record, err := d.AvroMessageToRecord(nil, &sarama.ConsumerMessage{Value: nil})
 	isErrNilMessage := errors.Is(err, e.ErrNilMessage)
 	assert.Nil(t, record)
-	assert.Equal(t, isErrNilMessage, true)
+	assert.True(t, isErrNilMessage)
 }

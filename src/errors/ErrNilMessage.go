@@ -1,7 +1,5 @@
 package errors
 
-type ErrNilMessage struct {}
+import "errors"
 
-func (err *ErrNilMessage) Error() string {
-	return "message value is nil"
-}
+var ErrNilMessage = errors.New("message value is nil")

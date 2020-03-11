@@ -37,6 +37,12 @@ func MakeKafkaConsumer(endpoints Endpoints, logger log.Logger, schemaRegistry *s
 		SchemaRegistry: schemaRegistry,
 	}
 
+	withKeyAndValue, err := strconv.ParseBool(kafkaConfig.WithKeyAndValue)
+	if err != nil {
+		level.Warn(logger).Log("err", err, "message", "failed to get consumer with key and value")
+		withKeyAndValue = false
+	}
+
 	return kafka.Consumer{
 		Topics:                kafkaConfig.Topics,
 		Group:                 kafkaConfig.ConsumerGroup,
@@ -47,5 +53,6 @@ func MakeKafkaConsumer(endpoints Endpoints, logger log.Logger, schemaRegistry *s
 		BatchSize:             batchSize,
 		MetricsUpdateInterval: metricsUpdateInterval,
 		BufferSize:            bufferSize,
+		WithKeyAndValue:       withKeyAndValue,
 	}, nil
 }

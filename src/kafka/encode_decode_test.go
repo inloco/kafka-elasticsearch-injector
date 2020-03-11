@@ -28,7 +28,7 @@ func TestDecoder_JsonMessageToRecord(t *testing.T) {
 		Partition: 1,
 		Offset:    54,
 		Timestamp: time.Now(),
-	})
+	}, false)
 	assert.Nil(t, err)
 	returnedJsonBytes, err := json.Marshal(record.Json)
 	assert.Nil(t, err)
@@ -47,7 +47,7 @@ func TestDecoder_JsonMessageToRecord_MalformedJson(t *testing.T) {
 		Partition: 1,
 		Offset:    54,
 		Timestamp: time.Now(),
-	})
+	}, false)
 	assert.Nil(t, record)
 	assert.NotNil(t, err)
 }

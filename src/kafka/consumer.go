@@ -43,6 +43,7 @@ type Consumer struct {
 	BatchSize             int
 	MetricsUpdateInterval time.Duration
 	BufferSize            int
+	WithKeyAndValue       bool
 }
 
 type topicPartitionOffset struct {
@@ -144,7 +145,7 @@ func (k *kafka) worker(consumer *cluster.Consumer, buffSize int, notifications c
 		for idx == buffSize {
 			if decoded == nil {
 				for _, msg := range buf {
-					req, err := k.consumer.Decoder(nil, msg)
+					req, err := k.consumer.Decoder(nil, msg, k.consumer.WithKeyAndValue)
 					if err != nil {
 						if errors.Is(err, e.ErrNilMessage) {
 							continue

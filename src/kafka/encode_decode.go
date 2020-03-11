@@ -21,7 +21,7 @@ import (
 // message object. It's designed to be used in Kafka consumers.
 // One straightforward DecodeMessageFunc could be something that
 // Avro decodes the message body to the concrete response type.
-type DecodeMessageFunc func(context.Context, *sarama.ConsumerMessage) (record *models.Record, err error)
+type DecodeMessageFunc func(context.Context, *sarama.ConsumerMessage, bool) (record *models.Record, err error)
 
 const kafkaTimestampKey = "@timestamp"
 const keyField = "key"
@@ -39,7 +39,7 @@ func (d *Decoder) DeserializerFor(recordType string) DecodeMessageFunc {
 	}
 }
 
-func (d *Decoder) AvroMessageToRecord(context context.Context, msg *sarama.ConsumerMessage) (*models.Record, error) {
+func (d *Decoder) AvroMessageToRecord(context context.Context, msg *sarama.ConsumerMessage, withKeyAndValue bool) (*models.Record, error) {
 	if msg.Value == nil {
 		return nil, e.ErrNilMessage
 	}
@@ -63,7 +63,7 @@ func (d *Decoder) AvroMessageToRecord(context context.Context, msg *sarama.Consu
 
 	parsedNative[kafkaTimestampKey] = makeTimestamp(msg.Timestamp)
 
-	if msg.Key != nil {
+	if withKeyAndValue && msg.Key != nil {
 		nativeKey, err := d.nativeFromBinary(msg.Key)
 		if err != nil {
 			return nil, err
@@ -84,7 +84,7 @@ func makeTimestamp(timestamp time.Time) int64 {
 	return timestamp.UnixNano() / int64(time.Millisecond)
 }
 
-func (d *Decoder) JsonMessageToRecord(context context.Context, msg *sarama.ConsumerMessage) (*models.Record, error) {
+func (d *Decoder) JsonMessageToRecord(context context.Context, msg *sarama.ConsumerMessage, withKeyAndValue bool) (*models.Record, error) {
 	var jsonValue map[string]interface{}
 	err := json.Unmarshal(msg.Value, &jsonValue)
 

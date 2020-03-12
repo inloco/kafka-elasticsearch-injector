@@ -30,6 +30,10 @@ type fixtureService struct {
 }
 
 func (s fixtureService) Insert(records []*models.Record) error {
+	if len(records) == 0 {
+		return nil
+	}
+
 	elasticRecords, err := s.codec.EncodeElasticRecords(records)
 	if err != nil {
 		return err
@@ -63,8 +67,11 @@ var (
 	service   = fixtureService{db, codec}
 	endpoints = &fixtureEndpoints{
 		func(ctx context.Context, request interface{}) (response interface{}, err error) {
-			records := request.([]*models.Record)
+			if request == nil {
+				return nil, nil
+			}
 
+			records := request.([]*models.Record)
 			return nil, service.Insert(records)
 		},
 	}

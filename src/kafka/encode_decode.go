@@ -11,10 +11,10 @@ import (
 	"sync"
 
 	"github.com/Shopify/sarama"
-	"github.com/linkedin/goavro/v2"
 	"github.com/inloco/kafka-elasticsearch-injector/src/models"
 	e "github.com/inloco/kafka-elasticsearch-injector/src/errors"
 	"github.com/inloco/kafka-elasticsearch-injector/src/schema_registry"
+	"github.com/linkedin/goavro/v2"
 )
 
 // DecodeMessageFunc extracts a user-domain request object from an Kafka
@@ -39,7 +39,7 @@ func (d *Decoder) DeserializerFor(recordType string) DecodeMessageFunc {
 	}
 }
 
-func (d *Decoder) AvroMessageToRecord(context context.Context, msg *sarama.ConsumerMessage, withKeyAndValue bool) (*models.Record, error) {
+func (d *Decoder) AvroMessageToRecord(context context.Context, msg *sarama.ConsumerMessage, includeKey bool) (*models.Record, error) {
 	if msg.Value == nil {
 		return nil, e.ErrNilMessage
 	}
@@ -63,7 +63,7 @@ func (d *Decoder) AvroMessageToRecord(context context.Context, msg *sarama.Consu
 
 	parsedNative[kafkaTimestampKey] = makeTimestamp(msg.Timestamp)
 
-	if withKeyAndValue && msg.Key != nil {
+	if includeKey && msg.Key != nil {
 		nativeKey, err := d.nativeFromBinary(msg.Key)
 		if err != nil {
 			return nil, err
@@ -84,8 +84,9 @@ func makeTimestamp(timestamp time.Time) int64 {
 	return timestamp.UnixNano() / int64(time.Millisecond)
 }
 
-func (d *Decoder) JsonMessageToRecord(context context.Context, msg *sarama.ConsumerMessage, withKeyAndValue bool) (*models.Record, error) {
+func (d *Decoder) JsonMessageToRecord(context context.Context, msg *sarama.ConsumerMessage, includeKey bool) (*models.Record, error) {
 	var jsonValue map[string]interface{}
+	var jsonKey map[string]interface{}
 	err := json.Unmarshal(msg.Value, &jsonValue)
 
 	if err != nil {
@@ -93,6 +94,14 @@ func (d *Decoder) JsonMessageToRecord(context context.Context, msg *sarama.Consu
 	}
 
 	jsonValue[kafkaTimestampKey] = makeTimestamp(msg.Timestamp)
+
+	if includeKey && msg.Key != nil {
+		err := json.Unmarshal(msg.Key, &jsonKey)
+		if err != nil {
+			return nil, err
+		}
+		jsonValue[keyField] = jsonKey
+	}
 
 	return &models.Record{
 		Topic:     msg.Topic,

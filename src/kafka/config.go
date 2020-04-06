@@ -13,5 +13,5 @@ type Config struct {
 	MetricsUpdateInterval string
 	BufferSize            string
 	RecordType            string
-	WithKeyAndValue       string
+	IncludeKey            string
 }

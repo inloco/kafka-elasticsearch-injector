@@ -64,7 +64,28 @@ func TestDecoder_JsonMessageToRecord_MalformedJson(t *testing.T) {
 
 func TestDecoder_AvroMessageToRecord_NilMessageValue(t *testing.T) {
 	d := &Decoder{CodecCache: sync.Map{}}
-	record, err := d.AvroMessageToRecord(context.Background(), &sarama.ConsumerMessage{Value: nil, Topic: "test", Partition: 1, Offset: 54, Timestamp: time.Now()})
+	record, err := d.AvroMessageToRecord(context.Background(), &sarama.ConsumerMessage{
+		Value:     nil,
+		Topic:     "test",
+		Partition: 1, Offset: 54,
+		Timestamp: time.Now()},
+		false)
+	isErrNilMessage := errors.Is(err, e.ErrNilMessage)
+	assert.Nil(t, record)
+	assert.True(t, isErrNilMessage)
+}
+
+func TestDecoder_AvroMessageToRecord_NilMessageValue_IncludeKey(t *testing.T) {
+	d := &Decoder{CodecCache: sync.Map{}}
+	key := dummyKey{"marco"}
+	jsonBytesKey, err := json.Marshal(key)
+	record, err := d.AvroMessageToRecord(context.Background(), &sarama.ConsumerMessage{
+		Value:     nil,
+		Key:       jsonBytesKey,
+		Topic:     "test",
+		Partition: 1, Offset: 54,
+		Timestamp: time.Now()},
+		true)
 	isErrNilMessage := errors.Is(err, e.ErrNilMessage)
 	assert.Nil(t, record)
 	assert.True(t, isErrNilMessage)

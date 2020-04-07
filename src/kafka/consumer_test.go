@@ -118,51 +118,6 @@ func TestKafka_Start(t *testing.T) {
 	rec := fixtures.NewFixtureRecord()
 	var msg *sarama.ProducerMessage
 	if assert.NoError(t, err) {
-
-		err = producer.Publish(rec)
-		if assert.NoError(t, err) {
-			msg = <-producer.GetSuccesses()
-		} else {
-			fmt.Println(err.Error())
-		}
-	}
-	<-notifications
-	esIndex := fmt.Sprintf("%s-%s", msg.Topic, time.Now().Format("2006-01-02"))
-	esId := fmt.Sprintf("%d:%d", msg.Partition, msg.Offset)
-	_, err = db.GetClient().Refresh(esIndex).Do(context.Background())
-	if assert.NoError(t, err) {
-		res, err := db.GetClient().Get().Index(esIndex).Id(esId).Do(context.Background())
-		var r fixtures.FixtureRecord
-		if assert.NoError(t, err) {
-			assert.True(t, res.Found)
-			err = json.Unmarshal(res.Source, &r)
-			if assert.NoError(t, err) {
-				assert.Equal(t, rec.Id, r.Id)
-				assert.InDelta(t, expectedTimestamp, r.Timestamp, 5000.0)
-			}
-		}
-		signals <- os.Interrupt
-	}
-	db.GetClient().DeleteByQuery(esIndex).Query(elastic.MatchAllQuery{}).Do(context.Background())
-	db.CloseClient()
-}
-
-func TestKafka_Start_WithNilValue(t *testing.T) {
-	signals := make(chan os.Signal, 1)
-	notifications := make(chan Notification, 1)
-	go k.Start(signals, notifications)
-	config := sarama.NewConfig()
-	config.Producer.Return.Successes = true
-	config.Producer.MaxMessageBytes = 20 * 1024 * 1024 // 20mb
-	config.Producer.Flush.Frequency = 1 * time.Millisecond
-	config.Version = sarama.V0_10_0_0 // This version is the same as in production
-	<-notifications
-	producer, err := fixtures.NewProducer("localhost:9092", config, schemaRegistry)
-	expectedTimestamp := time.Now().UnixNano() / int64(time.Millisecond)
-	rec := fixtures.NewEmptyFixtureRecord()
-	var msg *sarama.ProducerMessage
-	if assert.NoError(t, err) {
-
 		err = producer.Publish(rec)
 		if assert.NoError(t, err) {
 			msg = <-producer.GetSuccesses()

@@ -11,8 +11,8 @@ import (
 	"sync"
 
 	"github.com/Shopify/sarama"
-	"github.com/inloco/kafka-elasticsearch-injector/src/models"
 	e "github.com/inloco/kafka-elasticsearch-injector/src/errors"
+	"github.com/inloco/kafka-elasticsearch-injector/src/models"
 	"github.com/inloco/kafka-elasticsearch-injector/src/schema_registry"
 	"github.com/linkedin/goavro/v2"
 )
@@ -121,7 +121,7 @@ func (d *Decoder) nativeFromBinary(value []byte) (interface{}, error) {
 	}
 	var codec *goavro.Codec
 	if codecI, ok := d.CodecCache.Load(schemaId); ok {
-		codec, ok = codecI.(*goavro.Codec)
+		codec, _ = codecI.(*goavro.Codec)
 	}
 
 	if codec == nil {

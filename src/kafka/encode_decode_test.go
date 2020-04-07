@@ -93,11 +93,16 @@ func TestDecoder_AvroMessageToRecord_NilMessageValue_IncludeKey(t *testing.T) {
 
 func TestDecoder_JsonMessageToRecord_IncludeKey(t *testing.T) {
 	d := &Decoder{CodecCache: sync.Map{}}
+
 	key := dummyKey{"marco"}
 	jsonBytesKey, err := json.Marshal(key)
+	assert.Nil(t, err)
+
 	val := dummyValue{"pop", 60}
 	jsonBytesValue, err := json.Marshal(val)
+	assert.Nil(t, err)
 	expected := dummyIncludeKey{"pop", 60, dummyKey{"marco"}}
+
 	record, err := d.JsonMessageToRecord(context.Background(), &sarama.ConsumerMessage{
 		Key:       jsonBytesKey,
 		Value:     jsonBytesValue,
@@ -107,13 +112,17 @@ func TestDecoder_JsonMessageToRecord_IncludeKey(t *testing.T) {
 		Timestamp: time.Now(),
 	}, true)
 	assert.Nil(t, err)
+
 	returnedJsonBytes, err := json.Marshal(record.Json)
 	assert.Nil(t, err)
+
 	var returnedVal dummyValue
 	err = json.Unmarshal(returnedJsonBytes, &returnedVal)
 	assert.Nil(t, err)
 	assert.Equal(t, val, returnedVal)
+
 	var returnedKeyIncluded dummyIncludeKey
 	err = json.Unmarshal(returnedJsonBytes, &returnedKeyIncluded)
+	assert.Nil(t, err)
 	assert.Equal(t, expected, returnedKeyIncluded)
 }

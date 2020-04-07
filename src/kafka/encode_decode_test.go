@@ -3,14 +3,14 @@ package kafka
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"sync"
 	"testing"
 	"time"
-	"errors"
 
 	"github.com/Shopify/sarama"
-	"github.com/stretchr/testify/assert"
 	e "github.com/inloco/kafka-elasticsearch-injector/src/errors"
+	"github.com/stretchr/testify/assert"
 )
 
 type dummy struct {
@@ -54,7 +54,7 @@ func TestDecoder_JsonMessageToRecord_MalformedJson(t *testing.T) {
 
 func TestDecoder_AvroMessageToRecord_NilMessageValue(t *testing.T) {
 	d := &Decoder{CodecCache: sync.Map{}}
-	record, err := d.AvroMessageToRecord(nil, &sarama.ConsumerMessage{Value: nil})
+	record, err := d.AvroMessageToRecord(context.Background(), &sarama.ConsumerMessage{Value: nil, Topic: "test", Partition: 1, Offset: 54, Timestamp: time.Now()})
 	isErrNilMessage := errors.Is(err, e.ErrNilMessage)
 	assert.Nil(t, record)
 	assert.True(t, isErrNilMessage)

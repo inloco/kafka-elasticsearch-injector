@@ -95,8 +95,7 @@ func TestDecoder_JsonMessageToRecord_IncludeKey(t *testing.T) {
 	d := &Decoder{CodecCache: sync.Map{}}
 
 	key := dummyKey{"marco"}
-	jsonBytesKey, err := json.Marshal(key)
-	assert.Nil(t, err)
+	jsonBytesKey, _ := json.Marshal(key)
 
 	val := dummyValue{"pop", 60}
 	jsonBytesValue, err := json.Marshal(val)

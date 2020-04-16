@@ -33,7 +33,10 @@ func main() {
 	metrics.Register()
 	schemaRegistry, err := schema_registry.NewSchemaRegistry(os.Getenv("SCHEMA_REGISTRY_URL"))
 	if err != nil {
-		level.Error(logger).Log("err", err, "message", "failed to create schema registry client")
+		err = level.Error(logger).Log("err", err, "message", "failed to create schema registry client")
+		if err != nil {
+			panic(err)
+		}
 	}
 
 	kafkaConfig := &kafka.Config{

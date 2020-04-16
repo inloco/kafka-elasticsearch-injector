@@ -39,7 +39,10 @@ func MakeKafkaConsumer(endpoints Endpoints, logger log.Logger, schemaRegistry *s
 
 	includeKey, err := strconv.ParseBool(kafkaConfig.IncludeKey)
 	if err != nil {
-		level.Warn(logger).Log("err", err, "message", "failed to get consumer with key and value")
+		err = level.Warn(logger).Log("err", err, "message", "failed to get consumer include key configuration flag")
+		if err != nil {
+			panic(err)
+		}
 		includeKey = false
 	}
 

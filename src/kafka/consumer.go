@@ -8,7 +8,7 @@ import (
 	"time"
 
 	"github.com/Shopify/sarama"
-	"github.com/bsm/sarama-cluster"
+	cluster "github.com/bsm/sarama-cluster"
 	"github.com/go-kit/kit/endpoint"
 	"github.com/go-kit/kit/log"
 	"github.com/go-kit/kit/log/level"
@@ -43,6 +43,7 @@ type Consumer struct {
 	BatchSize             int
 	MetricsUpdateInterval time.Duration
 	BufferSize            int
+	IncludeKey            bool
 }
 
 type topicPartitionOffset struct {
@@ -144,7 +145,7 @@ func (k *kafka) worker(consumer *cluster.Consumer, buffSize int, notifications c
 		for idx == buffSize {
 			if decoded == nil {
 				for _, msg := range buf {
-					req, err := k.consumer.Decoder(nil, msg)
+					req, err := k.consumer.Decoder(nil, msg, k.consumer.IncludeKey)
 					if err != nil {
 						if errors.Is(err, e.ErrNilMessage) {
 							continue

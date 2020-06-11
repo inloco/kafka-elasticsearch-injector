@@ -5,10 +5,10 @@ import (
 
 	"time"
 
-	"github.com/inloco/kafka-elasticsearch-injector/src/kafka"
-	"github.com/inloco/kafka-elasticsearch-injector/src/schema_registry"
 	"github.com/go-kit/kit/log"
 	"github.com/go-kit/kit/log/level"
+	"github.com/inloco/kafka-elasticsearch-injector/src/kafka"
+	"github.com/inloco/kafka-elasticsearch-injector/src/schema_registry"
 )
 
 func MakeKafkaConsumer(endpoints Endpoints, logger log.Logger, schemaRegistry *schema_registry.SchemaRegistry, kafkaConfig *kafka.Config) (kafka.Consumer, error) {
@@ -37,6 +37,15 @@ func MakeKafkaConsumer(endpoints Endpoints, logger log.Logger, schemaRegistry *s
 		SchemaRegistry: schemaRegistry,
 	}
 
+	includeKey, err := strconv.ParseBool(kafkaConfig.IncludeKey)
+	if err != nil {
+		err = level.Warn(logger).Log("err", err, "message", "failed to get consumer include key configuration flag")
+		if err != nil {
+			panic(err)
+		}
+		includeKey = false
+	}
+
 	return kafka.Consumer{
 		Topics:                kafkaConfig.Topics,
 		Group:                 kafkaConfig.ConsumerGroup,
@@ -47,5 +56,6 @@ func MakeKafkaConsumer(endpoints Endpoints, logger log.Logger, schemaRegistry *s
 		BatchSize:             batchSize,
 		MetricsUpdateInterval: metricsUpdateInterval,
 		BufferSize:            bufferSize,
+		IncludeKey:            includeKey,
 	}, nil
 }

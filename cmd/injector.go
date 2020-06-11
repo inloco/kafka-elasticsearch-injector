@@ -45,6 +45,7 @@ func main() {
 		BufferSize:            os.Getenv("KAFKA_CONSUMER_BUFFER_SIZE"),
 		MetricsUpdateInterval: os.Getenv("KAFKA_CONSUMER_METRICS_UPDATE_INTERVAL"),
 		RecordType:            os.Getenv("KAFKA_CONSUMER_RECORD_TYPE"),
+		IncludeKey:            os.Getenv("KAFKA_CONSUMER_INCLUDE_KEY"),
 	}
 	metricsPublisher := metrics.NewMetricsPublisher()
 	service := injector.NewService(logger, metricsPublisher)

@@ -89,6 +89,7 @@ func (d recordDatabase) Insert(records []*models.ElasticRecord) (*InsertResponse
 		return &InsertResponse{AlreadyExists: nil, Retry: records, Backoff: true}, nil
 	}
 	if err != nil {
+		_ = level.Debug(d.logger).Log("message", "something went wrong with elasticsearch", "err", err)
 		return nil, err
 	}
 	if res.Errors {
@@ -112,10 +113,12 @@ func (d recordDatabase) Insert(records []*models.ElasticRecord) (*InsertResponse
 			}
 			for _, f := range failed {
 				if f.Status == http.StatusBadRequest {
+					_ = level.Debug(d.logger).Log("message", "elasticsearch bad requests", "err", f)
 					d.metricsPublisher.ElasticsearchBadRequests(1)
 					continue
 				}
 				if f.Status == http.StatusConflict {
+					_ = level.Debug(d.logger).Log("message", "elasticsearch conflicts", "err", f)
 					d.metricsPublisher.ElasticsearchConflicts(1)
 					continue
 				}

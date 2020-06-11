@@ -39,6 +39,7 @@ To create new injectors for your topics, you should create a new kubernetes depl
 - `ES_TIME_SUFFIX` Indicates what time unit to append to index names on Elasticsearch. Supported values are `day` and `hour`. Default value is `day` **OPTIONAL**
 - `KAFKA_CONSUMER_RECORD_TYPE` Kafka record type. Should be set to "avro" or "json". Defaults to avro. **OPTIONAL**
 - `KAFKA_CONSUMER_METRICS_UPDATE_INTERVAL` The interval which the app updates the exported metrics in the format of golang's `time.ParseDuration`. Defaults to 30s. **OPTIONAL**
+- `KAFKA_CONSUMER_INCLUDE_KEY` Determines whether to include the Kafka key in the Elasticsearch message(as the "key" field). Defaults to false. **OPTIONAL**
 
 ### Important note about Elasticsearch mappings and types
 
@@ -159,7 +160,8 @@ To build the project from source, run from project root:
 go build cmd/injector.go
 ```
 
-To run tests, run `docker-compose up -d zookeeper kafka schema-registry elasticsearch` and run `make test`. 
+To run tests, first add kafka to your /etc/hosts file `echo "127.0.0.1 kafka" | sudo tee -a /etc/hosts` 
+and then run `docker-compose up -d zookeeper kafka schema-registry elasticsearch` and run `make test`. 
 
 ### Versioning
 

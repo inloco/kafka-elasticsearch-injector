@@ -30,6 +30,10 @@ type fixtureService struct {
 }
 
 func (s fixtureService) Insert(records []*models.Record) error {
+	if len(records) == 0 {
+		return nil
+	}
+
 	elasticRecords, err := s.codec.EncodeElasticRecords(records)
 	if err != nil {
 		return err
@@ -63,8 +67,11 @@ var (
 	service   = fixtureService{db, codec}
 	endpoints = &fixtureEndpoints{
 		func(ctx context.Context, request interface{}) (response interface{}, err error) {
-			records := request.([]*models.Record)
+			if request == nil {
+				return nil, nil
+			}
 
+			records := request.([]*models.Record)
 			return nil, service.Insert(records)
 		},
 	}
@@ -111,7 +118,6 @@ func TestKafka_Start(t *testing.T) {
 	rec := fixtures.NewFixtureRecord()
 	var msg *sarama.ProducerMessage
 	if assert.NoError(t, err) {
-
 		err = producer.Publish(rec)
 		if assert.NoError(t, err) {
 			msg = <-producer.GetSuccesses()

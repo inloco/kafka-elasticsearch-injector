@@ -225,6 +225,8 @@ github.com/oklog/run v1.0.0/go.mod h1:dlhp/R75TPv97u0XWUtDeV/lRKWPKSdTuV0TZvrmrQ
 github.com/olekukonko/tablewriter v0.0.0-20170122224234-a0225b3f23b5/go.mod h1:vsDQFd/mU46D+Z4whnwzcISnGGzXWMclvtLoiIKAKIo=
 github.com/olivere/elastic/v7 v7.0.18 h1:uMw4RKozi/v40hyffz/klgiSlTAbTzSCDS3Sfrx8EBY=
 github.com/olivere/elastic/v7 v7.0.18/go.mod h1:4Jqt5xvjqpjCqgnTcHwl3j8TLs8mvoOK8NYgo/qEOu4=
+github.com/olivere/elastic/v7 v7.0.19 h1:w4F6JpqOISadhYf/n0NR1cNj73xHqh4pzPwD1Gkidts=
+github.com/olivere/elastic/v7 v7.0.19/go.mod h1:4Jqt5xvjqpjCqgnTcHwl3j8TLs8mvoOK8NYgo/qEOu4=
 github.com/onsi/ginkgo v1.6.0/go.mod h1:lLunBs/Ym6LB5Z9jYTR76FiuTmxDTDusOGeTQH+WWjE=
 github.com/onsi/ginkgo v1.7.0/go.mod h1:lLunBs/Ym6LB5Z9jYTR76FiuTmxDTDusOGeTQH+WWjE=
 github.com/onsi/ginkgo v1.8.0 h1:VkHVNpR4iVnU8XQR6DBm8BqYjN7CRzw+xKUbVVbbW9w=

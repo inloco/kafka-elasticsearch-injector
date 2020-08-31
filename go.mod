@@ -3,7 +3,7 @@ module github.com/inloco/kafka-elasticsearch-injector
 go 1.14
 
 require (
-	github.com/Shopify/sarama v1.24.1
+	github.com/Shopify/sarama v1.27.0
 	github.com/bsm/sarama-cluster v2.1.15+incompatible
 	github.com/datamountaineer/schema-registry v0.0.0-20170721142813-6240b64c5baa
 	github.com/go-kit/kit v0.10.0

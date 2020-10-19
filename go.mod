@@ -9,7 +9,7 @@ require (
 	github.com/go-kit/kit v0.10.0
 	github.com/klauspost/cpuid v1.2.1 // indirect
 	github.com/linkedin/goavro/v2 v2.9.8
-	github.com/olivere/elastic/v7 v7.0.20
+	github.com/olivere/elastic/v7 v7.0.21
 	github.com/onsi/ginkgo v1.8.0 // indirect
 	github.com/onsi/gomega v1.5.0 // indirect
 	github.com/pkg/errors v0.9.1

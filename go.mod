@@ -8,7 +8,7 @@ require (
 	github.com/datamountaineer/schema-registry v0.0.0-20170721142813-6240b64c5baa
 	github.com/go-kit/kit v0.10.0
 	github.com/klauspost/cpuid v1.2.1 // indirect
-	github.com/linkedin/goavro/v2 v2.9.8
+	github.com/linkedin/goavro/v2 v2.10.0
 	github.com/olivere/elastic/v7 v7.0.22
 	github.com/onsi/ginkgo v1.8.0 // indirect
 	github.com/onsi/gomega v1.5.0 // indirect

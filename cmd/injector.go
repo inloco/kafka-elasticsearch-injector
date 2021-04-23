@@ -42,6 +42,7 @@ func main() {
 		ConsumerGroup:         os.Getenv("KAFKA_CONSUMER_GROUP"),
 		Concurrency:           os.Getenv("KAFKA_CONSUMER_CONCURRENCY"),
 		BatchSize:             os.Getenv("KAFKA_CONSUMER_BATCH_SIZE"),
+		BatchDeadline:         os.Getenv("KAFKA_CONSUMER_BATCH_DEADLINE"),
 		BufferSize:            os.Getenv("KAFKA_CONSUMER_BUFFER_SIZE"),
 		MetricsUpdateInterval: os.Getenv("KAFKA_CONSUMER_METRICS_UPDATE_INTERVAL"),
 		RecordType:            os.Getenv("KAFKA_CONSUMER_RECORD_TYPE"),

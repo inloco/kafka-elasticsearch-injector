@@ -2,8 +2,8 @@ package kafka
 
 import (
 	"context"
-	"os"
 	"errors"
+	"os"
 
 	"time"
 
@@ -12,9 +12,9 @@ import (
 	"github.com/go-kit/kit/endpoint"
 	"github.com/go-kit/kit/log"
 	"github.com/go-kit/kit/log/level"
+	e "github.com/inloco/kafka-elasticsearch-injector/src/errors"
 	"github.com/inloco/kafka-elasticsearch-injector/src/metrics"
 	"github.com/inloco/kafka-elasticsearch-injector/src/models"
-	e "github.com/inloco/kafka-elasticsearch-injector/src/errors"
 )
 
 type Notification int32
@@ -41,6 +41,7 @@ type Consumer struct {
 	Logger                log.Logger
 	Concurrency           int
 	BatchSize             int
+	BatchDeadline         time.Duration
 	MetricsUpdateInterval time.Duration
 	BufferSize            int
 	IncludeKey            bool
@@ -80,8 +81,9 @@ func (k *kafka) Start(signals chan os.Signal, notifications chan<- Notification)
 	defer consumer.Close()
 
 	buffSize := k.consumer.BatchSize
+	batchDeadline := k.consumer.BatchDeadline
 	for i := 0; i < concurrency; i++ {
-		go k.worker(consumer, buffSize, notifications)
+		go k.worker(consumer, buffSize, batchDeadline, notifications)
 	}
 	go func() {
 		for {
@@ -134,45 +136,65 @@ func (k *kafka) Start(signals chan os.Signal, notifications chan<- Notification)
 	}
 }
 
-func (k *kafka) worker(consumer *cluster.Consumer, buffSize int, notifications chan<- Notification) {
-	buf := make([]*sarama.ConsumerMessage, buffSize)
-	var decoded []*models.Record
-	idx := 0
-	for {
-		kafkaMsg := <-k.consumerCh
-		buf[idx] = kafkaMsg
-		idx++
-		for idx == buffSize {
-			if decoded == nil {
-				for _, msg := range buf {
-					req, err := k.consumer.Decoder(nil, msg, k.consumer.IncludeKey)
-					if err != nil {
-						if errors.Is(err, e.ErrNilMessage) {
-							continue
-						}
-
-						level.Error(k.consumer.Logger).Log(
-							"message", "Error decoding message",
-							"err", err.Error(),
-						)
-						continue
-					}
-					decoded = append(decoded, req)
-				}
-			}
-			if res, err := k.consumer.Endpoint(context.Background(), decoded); err != nil {
-				level.Error(k.consumer.Logger).Log("message", "error on endpoint call", "err", err.Error())
-				var _ = res // ignore res (for now)
+func (k *kafka) decodeMessages(buf []*sarama.ConsumerMessage, bufIdx int) []*models.Record {
+	decoded := make([]*models.Record, 0)
+	for i := 0; i < bufIdx; i++ {
+		req, err := k.consumer.Decoder(nil, buf[i], k.consumer.IncludeKey)
+		if err != nil {
+			if errors.Is(err, e.ErrNilMessage) {
 				continue
 			}
-			notifications <- Inserted
-			k.metricsPublisher.IncrementRecordsConsumed(buffSize)
-			for _, msg := range buf {
-				k.offsetCh <- &topicPartitionOffset{msg.Topic, msg.Partition, msg.Offset}
-				consumer.MarkOffset(msg, "") // mark message as processed
+
+			level.Error(k.consumer.Logger).Log(
+				"message", "Error decoding message",
+				"err", err.Error(),
+			)
+			continue
+		}
+		decoded = append(decoded, req)
+	}
+
+	return decoded
+}
+
+func (k *kafka) flushMessages(buf []*sarama.ConsumerMessage, bufIdx int, consumer *cluster.Consumer, notifications chan<- Notification) {
+	records := k.decodeMessages(buf, bufIdx)
+	for {
+		if res, err := k.consumer.Endpoint(context.Background(), records); err != nil {
+			level.Error(k.consumer.Logger).Log("message", "error on endpoint call", "err", err.Error())
+			var _ = res // ignore res (for now)
+			continue
+		}
+		break
+	}
+
+	notifications <- Inserted
+	k.metricsPublisher.IncrementRecordsConsumed(len(records))
+	for i := 0; i < bufIdx; i++ {
+		k.offsetCh <- &topicPartitionOffset{buf[i].Topic, buf[i].Partition, buf[i].Offset}
+		consumer.MarkOffset(buf[i], "") // mark message as processed
+	}
+}
+
+func (k *kafka) worker(consumer *cluster.Consumer, buffSize int, batchDeadline time.Duration, notifications chan<- Notification) {
+	buf := make([]*sarama.ConsumerMessage, buffSize)
+	var lastReceivedMsg time.Time
+	idx := 0
+	for {
+		select {
+		case kafkaMsg := <-k.consumerCh:
+			lastReceivedMsg = time.Now()
+			buf[idx] = kafkaMsg
+			idx++
+			if idx == buffSize {
+				k.flushMessages(buf, idx, consumer, notifications)
+				idx = 0
 			}
-			decoded = nil
-			idx = 0
+		default:
+			if idx > 0 && time.Since(lastReceivedMsg) > batchDeadline {
+				k.flushMessages(buf, idx, consumer, notifications)
+				idx = 0
+			}
 		}
 	}
 }

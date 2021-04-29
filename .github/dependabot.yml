@@ -1,0 +1,16 @@
+version: 2
+updates:
+- package-ecosystem: gomod
+  directory: "/"
+  schedule:
+    interval: daily
+    time: "03:00"
+  open-pull-requests-limit: 3
+  reviewers:
+  - racevedoo
+  assignees:
+  - racevedoo
+  ignore:
+  - dependency-name: github.com/Shopify/sarama
+    versions:
+    - 1.27.2

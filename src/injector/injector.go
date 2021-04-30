@@ -22,6 +22,11 @@ func MakeKafkaConsumer(endpoints Endpoints, logger log.Logger, schemaRegistry *s
 		level.Warn(logger).Log("err", err, "message", "failed to get consumer batch size")
 		batchSize = 100
 	}
+	batchDeadline, err := time.ParseDuration(kafkaConfig.BatchDeadline)
+	if err != nil {
+		level.Warn(logger).Log("err", err, "message", "failed to get consumer batch deadline")
+		batchDeadline = time.Minute
+	}
 	metricsUpdateInterval, err := time.ParseDuration(kafkaConfig.MetricsUpdateInterval)
 	if err != nil {
 		level.Warn(logger).Log("err", err, "message", "failed to get consumer metrics update interval")
@@ -54,6 +59,7 @@ func MakeKafkaConsumer(endpoints Endpoints, logger log.Logger, schemaRegistry *s
 		Logger:                logger,
 		Concurrency:           concurrency,
 		BatchSize:             batchSize,
+		BatchDeadline:         batchDeadline,
 		MetricsUpdateInterval: metricsUpdateInterval,
 		BufferSize:            bufferSize,
 		IncludeKey:            includeKey,

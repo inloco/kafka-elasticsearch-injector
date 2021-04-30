@@ -10,6 +10,7 @@ type Config struct {
 	ConsumerGroup         string
 	Concurrency           string
 	BatchSize             string
+	BatchDeadline         string
 	MetricsUpdateInterval string
 	BufferSize            string
 	RecordType            string

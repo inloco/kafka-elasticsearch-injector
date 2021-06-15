@@ -3,8 +3,8 @@ package injector
 import (
 	"context"
 
-	"github.com/inloco/kafka-elasticsearch-injector/src/models"
 	"github.com/go-kit/kit/endpoint"
+	"github.com/inloco/kafka-elasticsearch-injector/src/models"
 )
 
 type basicEndpoints struct {

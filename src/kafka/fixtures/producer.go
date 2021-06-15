@@ -7,8 +7,8 @@ import (
 	"strings"
 	"sync"
 
-	"github.com/inloco/kafka-elasticsearch-injector/src/schema_registry"
 	"github.com/Shopify/sarama"
+	"github.com/inloco/kafka-elasticsearch-injector/src/schema_registry"
 )
 
 const magic byte = 0
@@ -41,7 +41,7 @@ Config example :
 	config.Producer.Return.Successes = true
 	config.Producer.MaxMessageBytes = 20 * 1024 * 1024 // 20mb
 	config.Producer.Flush.Frequency = 500 * time.Millisecond
-	config.Version = sarama.V0_10_0_0                  // This version is the same as in production
+	config.Version = sarama.V2_3_0_0
 */
 func NewProducer(kafkaAddr string, config *sarama.Config, schemaRegistry *schema_registry.SchemaRegistry) (Producer, error) {
 	sarama.MaxRequestSize = 20 * 1024 * 1024 // 20mb

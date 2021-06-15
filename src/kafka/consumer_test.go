@@ -111,7 +111,7 @@ func TestKafka_Start(t *testing.T) {
 	config.Producer.Return.Successes = true
 	config.Producer.MaxMessageBytes = 20 * 1024 * 1024 // 20mb
 	config.Producer.Flush.Frequency = 1 * time.Millisecond
-	config.Version = sarama.V0_10_0_0 // This version is the same as in production
+	config.Version = sarama.V2_3_0_0
 	<-notifications
 	producer, err := fixtures.NewProducer("localhost:9092", config, schemaRegistry)
 	expectedTimestamp := time.Now().UnixNano() / int64(time.Millisecond)

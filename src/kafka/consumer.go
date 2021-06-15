@@ -2,8 +2,8 @@ package kafka
 
 import (
 	"context"
-	"os"
 	"errors"
+	"os"
 
 	"time"
 
@@ -12,9 +12,9 @@ import (
 	"github.com/go-kit/kit/endpoint"
 	"github.com/go-kit/kit/log"
 	"github.com/go-kit/kit/log/level"
+	e "github.com/inloco/kafka-elasticsearch-injector/src/errors"
 	"github.com/inloco/kafka-elasticsearch-injector/src/metrics"
 	"github.com/inloco/kafka-elasticsearch-injector/src/models"
-	e "github.com/inloco/kafka-elasticsearch-injector/src/errors"
 )
 
 type Notification int32
@@ -58,7 +58,7 @@ func NewKafka(address string, consumer Consumer, metrics metrics.MetricsPublishe
 	config.Consumer.Return.Errors = true
 	config.Group.Return.Notifications = true
 
-	config.Version = sarama.V0_10_0_0
+	config.Version = sarama.V2_3_0_0
 
 	return kafka{
 		brokers:          brokers,

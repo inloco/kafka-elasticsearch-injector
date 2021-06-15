@@ -7,14 +7,15 @@ jobs:
     <<: *defaults
     docker:
       - image: circleci/golang:1.14
-      - image: confluentinc/cp-zookeeper:3.1.1
+      - image: confluentinc/cp-zookeeper:5.3.0
         environment:
           - ZOOKEEPER_CLIENT_PORT=2181
-      - image: confluentinc/cp-kafka:3.1.1
+      - image: confluentinc/cp-kafka:5.3.0
         environment:
           - KAFKA_ZOOKEEPER_CONNECT=localhost:2181
           - KAFKA_ADVERTISED_LISTENERS=PLAINTEXT://localhost:9092
-      - image: confluentinc/cp-schema-registry:3.1.1
+          - KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR=1
+      - image: confluentinc/cp-schema-registry:5.3.0
         environment:
           - SCHEMA_REGISTRY_KAFKASTORE_CONNECTION_URL=localhost:2181
           - SCHEMA_REGISTRY_HOST_NAME=localhost

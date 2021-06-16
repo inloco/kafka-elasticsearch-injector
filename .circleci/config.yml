@@ -72,9 +72,6 @@ jobs:
           keys:
             - go-mod-v4-{{ checksum "go.sum" }}
       - run:
-          name: Compile binary
-          command: make compile-binary
-      - run:
           name: Build docker images
           command: |
             docker build --rm=false -t "${DOCKER_REPO}:ci" -f cmd/Dockerfile .

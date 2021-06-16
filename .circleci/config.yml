@@ -6,7 +6,7 @@ jobs:
   test:
     <<: *defaults
     docker:
-      - image: circleci/golang:1.14
+      - image: circleci/golang:1.16
       - image: confluentinc/cp-zookeeper:5.3.0
         environment:
           - ZOOKEEPER_CLIENT_PORT=2181
@@ -54,7 +54,7 @@ jobs:
   build-image:
     <<: *defaults
     docker:
-      - image: circleci/golang:1.14
+      - image: circleci/golang:1.16
     steps:
       - checkout
       - setup_remote_docker:

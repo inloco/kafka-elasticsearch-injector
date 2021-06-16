@@ -58,7 +58,7 @@ func (d *Decoder) AvroMessageToRecord(context context.Context, msg *sarama.Consu
 		if key.Kind() != reflect.String {
 			return nil, errors.New("could not unmarshall record JSON into map keyed by string")
 		}
-		parsedNative[key.String()] = nativeType.MapIndex(key).Interface()
+		parsedNative[key.String()] = unnestUnionType(nativeType.MapIndex(key).Interface())
 	}
 
 	parsedNative[kafkaTimestampKey] = makeTimestamp(msg.Timestamp)
@@ -139,6 +139,18 @@ func (d *Decoder) nativeFromBinary(value []byte) (interface{}, error) {
 	}
 
 	return native, nil
+}
+
+func unnestUnionType(value interface{}) interface{} {
+	reflectValue := reflect.ValueOf(value)
+	if isAvroUnion(reflectValue) {
+		return reflectValue.MapIndex(reflectValue.MapKeys()[0]).Interface()
+	}
+	return value
+}
+
+func isAvroUnion(reflectValue reflect.Value) bool {
+	return reflectValue.Kind() == reflect.Map && len(reflectValue.MapKeys()) == 1
 }
 
 func getSchemaId(value []byte) int32 {

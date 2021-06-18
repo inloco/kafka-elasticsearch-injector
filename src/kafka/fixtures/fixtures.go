@@ -23,7 +23,7 @@ func (r *FixtureRecord) Topic() string {
 }
 
 func (r *FixtureRecord) Schema() string {
-	return `{"type": "record","name": "FixtureRecord","fields": [{"name": "id","type":"int"}]}`
+	return `{"type": "record","name": "FixtureRecord","fields": [{"name": "id","type" : [ "null", "int" ],"default" : null}]}`
 }
 
 func (r *FixtureRecord) ToAvroSerialization() ([]byte, error) {
@@ -31,7 +31,7 @@ func (r *FixtureRecord) ToAvroSerialization() ([]byte, error) {
 	if err != nil {
 		return []byte{}, nil
 	}
-	return codec.BinaryFromNative(nil, map[string]interface{}{"id": r.Id})
+	return codec.BinaryFromNative(nil, map[string]interface{}{"id": map[string]interface{}{"int": r.Id}})
 }
 
 func NewFixtureRecord() *FixtureRecord {

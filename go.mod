@@ -1,6 +1,6 @@
 module github.com/inloco/kafka-elasticsearch-injector
 
-go 1.14
+go 1.16
 
 require (
 	github.com/Shopify/sarama v1.24.1
